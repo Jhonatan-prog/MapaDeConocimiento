@@ -3,18 +3,18 @@
 @{
     ViewData["Title"] = "Home";
 
-    string[] fields = {"C.C", "Room", "Type", "House"}; // Query to DB and save the fields
+    string[] fields = {"Column 1", "Column 2", "Column 3", "Column 4"}; // Query to DB and save the fields
 }
 
 <div class="table-container">
-    <div class="">
-        <div class="query-input">
-            <input type="text">
+    <div class="queries-container">
+        <div class="query-input-container">
+            <input type="text", placeholder="Insert text">
             <button class="search-btn">Search</button>
         </div>
-        <div class="buttons-container">
-            <button class="list-btn"></button>
-            <button class="create-btn"></button>
+        <div class="query-button-container">
+            <button class="list-btn">List</button>
+            <button class="create-btn">Create</button>
         </div>
     </div>
     <table class="register-table">
@@ -24,13 +24,39 @@
                 {
                     <th class="field" scope="col">@field</th>
                 }
+                <th class="field">Manage</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td></td>
+                <td>r1</td> @*{ from backend  *@
+                <td>r2</td> @*  from backend  *@
+                <td>r3</td> @*  from backend  *@
+                <td>r4</td> @*  from backend } *@
+                <td class="updt_del_buttons">
+                    <button>
+                        <img src="~/images/edit.png" alt="edit" asp-append-version="true">
+                    </button>
+                    <button>
+                        <img src="~/images/delete.png" alt="delete" asp-append-version="true">
+                    </button>
+                </td>
             </tr>
         </tbody>
     </table>
-    <div></div>
+    <div class="pag">
+        <button>
+            <img src="~/images/left-arrow.png" alt="left-arrow" class="left-arrow" asp-append-version="true">
+        </button>
+        <div class="pages-container">
+            <button class="list" id="focus"><h4>1</h4></button>
+            <button class="list"><h4>2</h4></button>
+            <button class="list"><h4>3</h4></button>
+            <button class="list"><h4>4</h4></button>
+            <button class="list"><h4>5</h4></button>
+        </div>
+        <button>
+            <img src="~/images/right-arrow.png" alt="right-arrow" class="right-arrow" asp-append-version="true">
+        </button>
+    </div>
 </div>

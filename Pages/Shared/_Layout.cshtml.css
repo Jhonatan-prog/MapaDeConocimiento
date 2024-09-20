@@ -1,10 +1,28 @@
 ﻿/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
 for details on configuring this project to bundle and minify static web assets. */
+@supports (font-variation-settings: normal) {
+  :root { 
+    font-family: InterVariable, sans-serif; 
+  }
+}
+
+
+body {
+  font-family: Inter, sans-serif;
+  font-feature-settings: 'liga' 1, 'calt' 1;
+  
+  background-color: #EBEBEB;
+}
+
+header.MCHeader {
+  background-color: #43A4FF;
+}
 
 a.navbar-brand {
   white-space: normal;
   text-align: center;
   word-break: break-all;
+  font-weight: 400;
 }
 
 a {
@@ -32,6 +50,10 @@ a {
 
 .box-shadow {
   box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+main.table-container {
+  height: 78vh;
 }
 
 button.accept-policy {
