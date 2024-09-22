@@ -1,0 +1,75 @@
+div.form-container {
+    --standard-sky-color: #43A4FF;
+    --standard-sky-color-hover: #3b91e0;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+
+    width: 100%;
+    height: 100%;
+
+    transform: translate(-50%, -50%);
+
+    background-color: hsla(0, 0%, 24%, 0.651);
+    Backdrop-filter: blur(5px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+}
+
+div.form-container div.generic-form-tag {
+    --standard-b-radius: 10px;
+
+    z-index: 999;
+
+    width: 350px;
+    padding-bottom: 1em;
+
+    border-radius: var(--standard-b-radius);
+    background-color: #eeeeee;
+    box-shadow: 3px 3px 8px rgb(36, 35, 35);
+}
+
+div.form-container div.generic-form-tag h3 {
+    padding: .2em;
+
+    color: #FBFBFB;
+    border-radius: var(--standard-b-radius) var(--standard-b-radius) 0 0;
+
+    background-color: var(--standard-sky-color);
+    border-bottom: 2px solid #6b6b6b;
+}
+
+div.generic-form-tag label:not(div.generic-form-tag:first-child) {
+    margin-top: .6em;
+}
+
+div.form-container div.generic-form-tag input {
+    margin-top: .2em;
+}
+
+div.form-container div.generic-form-tag input:hover, 
+div.form-container div.generic-form-tag input:focus {
+    border-color:  var(--standard-sky-color);
+}
+
+button.create-btn {
+    margin-top: 1.2em;
+
+    color: #FBFBFB;
+    letter-spacing: .07rem;
+    
+    background-color:  var(--standard-sky-color);
+    
+    border: none;
+    border-radius: var(--standard-b-radius);
+    transition: background-color 200ms ease-in-out;
+}
+
+.js-hidden {
+    visibility: hidden;
+}

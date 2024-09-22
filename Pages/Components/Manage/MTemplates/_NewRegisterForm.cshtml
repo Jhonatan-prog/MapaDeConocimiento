@@ -1,0 +1,15 @@
+
+<div class="form-container js-hidden" id="form-background-blurred">
+    <div class="generic-form-tag">
+        <h3>Create Register</h3>
+        <form id="form" method="post">
+            @foreach (string field in @Model.Fields) 
+            {   
+                <label for="cod_@field">@field</label>
+                <input type="text" id="cod_@field" name="@field-input" />
+            }
+
+            <button type="submit" class="create-btn">Create</button>
+        </form>
+    </div>
+</div>

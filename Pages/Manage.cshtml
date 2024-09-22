@@ -1,0 +1,13 @@
+@page "/manage"
+@model MapaDeConocimiento.Pages.Pages_Manage
+
+@{
+    var tableModel = new MapaDeConocimiento.Pages.Components.Manage.TableModelBackend();
+    tableModel.OnGet(); // Call the method to populate the model
+}
+
+<partial name="Components/Manage/CrudTableComp" model="tableModel" />
+
+@section Scripts {
+    <script type="text/javascript" src="~/js/Manage/CRUD.js"></script>
+}

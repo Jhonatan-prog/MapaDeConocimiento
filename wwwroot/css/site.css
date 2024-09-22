@@ -1,9 +1,13 @@
 html {
+  width: 100vw;
+  height: 100vh;
   font-size: 14px;
 }
 
 @media (min-width: 768px) {
   html {
+    width: 100vw;
+    height: 100vh;
     font-size: 16px;
   }
 }
@@ -21,6 +25,26 @@ body {
   margin-bottom: 60px;
 }
 
+form {
+  padding: 0 2em 2em 2em;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+input {
+  outline: none;
+  letter-spacing: .07rem;
+
+  padding-left: .2em;
+  
+  border: 2px solid #31313186;
+  border-radius: 4px 6px 6px 4px;
+  background-color: hsl(0, 0%, 98%);
+
+  transition: border-color 200ms ease-in-out;
+}
 
 img {
   position: absolute;
@@ -32,4 +56,11 @@ img {
 
   object-fit: contain;
   transform: translate(-50%, -50%);
+}
+
+footer.footer[b-tlq1hnsijf] {
+  position: static;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
 }

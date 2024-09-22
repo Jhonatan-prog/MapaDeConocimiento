@@ -1,0 +1,61 @@
+@model MapaDeConocimiento.Pages.Components.Manage.TableModelBackend
+
+<div class="table-container">
+    <div class="queries-container">
+        <div class="query-input-container">
+            <input type="text", placeholder="Insert text">
+            <button class="search-btn" action=001>Search</button>
+        </div>
+        <div class="query-button-container">
+            <button class="list-btn" action=001>List</button>
+            <button class="create-btn" id="create-btn" action=002>Create</button>
+        </div>
+    </div>
+    <table class="register-table">
+        <thead>
+            <tr>
+                @foreach (string field in @Model.Fields) 
+                {
+                    <th class="field" scope="col">@field</th>
+                }
+                <th class="field">Manage</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>r1</td> @*{ from backend  *@
+                <td>r2</td> @*  from backend  *@
+                <td>r3</td> @*  from backend  *@
+                <td>r4</td> @*  from backend } *@
+                <td class="updt_del_buttons">
+                    <button>
+                        <img src="~/images/edit.png" action="003" alt="edit" asp-append-version="true">
+                    </button>
+                    <button>
+                        <img src="~/images/delete.png" action="004" alt="delete" asp-append-version="true">
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="pag">
+        <button>
+            <img src="~/images/left-arrow.png" alt="left-arrow" class="left-arrow" asp-append-version="true">
+        </button>
+        <div class="pages-container">
+            <button class="list" id="focus"><h4>1</h4></button>
+            <button class="list"><h4>2</h4></button>
+            <button class="list"><h4>3</h4></button>
+            <button class="list"><h4>4</h4></button>
+            <button class="list"><h4>5</h4></button>
+        </div>
+        <button>
+            <img src="~/images/right-arrow.png" alt="right-arrow" class="right-arrow" asp-append-version="true">
+        </button>
+    </div>
+</div>
+
+@* fragment? *@
+<partial name="MTemplates/_NewRegisterForm.cshtml" model="@Model" />
+<partial name="MTemplates/_UpdateRegisterForm.cshtml" model="@Model" />
+@* fragment? *@
