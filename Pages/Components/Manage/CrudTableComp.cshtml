@@ -4,7 +4,7 @@
     <div class="queries-container">
         <div class="query-input-container">
             <input type="text", placeholder="Insert text">
-            <button class="search-btn" action=001>Search</button>
+            <button class="search-btn" id="list-btn" action=001>Search</button>
         </div>
         <div class="query-button-container">
             <button class="list-btn" action=001>List</button>
@@ -29,10 +29,10 @@
                 <td>r4</td> @*  from backend } *@
                 <td class="updt_del_buttons">
                     <button>
-                        <img src="~/images/edit.png" action="003" alt="edit" asp-append-version="true">
+                        <img src="~/images/edit.png" id="update-btn" action="003" alt="edit" asp-append-version="true">
                     </button>
                     <button>
-                        <img src="~/images/delete.png" action="004" alt="delete" asp-append-version="true">
+                        <img src="~/images/delete.png" id="delete-btn" action="004" alt="delete" asp-append-version="true">
                     </button>
                 </td>
             </tr>
@@ -53,6 +53,12 @@
             <img src="~/images/right-arrow.png" alt="right-arrow" class="right-arrow" asp-append-version="true">
         </button>
     </div>
+</div>
+
+<div class="table-pages">
+    <button class="table-c" id="proyecto">Proyecto</button>
+    <button class="table-c" id="tipo_proyecto">Tipo Producto</button>
+    <button class="table-c" id="termino_clave">Termino Clave</button>
 </div>
 
 @* fragment? *@
