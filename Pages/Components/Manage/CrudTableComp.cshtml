@@ -4,14 +4,14 @@
     <div class="queries-container">
         <div class="query-input-container">
             <input type="text", placeholder="Insert text">
-            <button class="search-btn" id="list-btn" action=001>Search</button>
+            <button class="search-btn" id="search-btn">Search</button>
         </div>
         <div class="query-button-container">
-            <button class="list-btn" action=001>List</button>
-            <button class="create-btn" id="create-btn" action=002>Create</button>
+            <button class="list-btn" id="list-btn">List</button>
+            <button class="create-btn" id="create-btn">Create</button>
         </div>
     </div>
-    <table class="register-table">
+    <table class="register-table" id="registers-table" table-name="proyecto">
         <thead>
             <tr>
                 @foreach (string field in @Model.Fields) 
@@ -29,10 +29,10 @@
                 <td>r4</td> @*  from backend } *@
                 <td class="updt_del_buttons">
                     <button>
-                        <img src="~/images/edit.png" id="update-btn" action="003" alt="edit" asp-append-version="true">
+                        <img src="~/images/edit.png" id="update-btn" alt="edit" asp-append-version="true">
                     </button>
                     <button>
-                        <img src="~/images/delete.png" id="delete-btn" action="004" alt="delete" asp-append-version="true">
+                        <img src="~/images/delete.png" id="delete-btn" alt="delete" asp-append-version="true">
                     </button>
                 </td>
             </tr>

@@ -1,6 +1,7 @@
 class FetchHandler {
-    constructor(baseUrl, tableName) {
+    constructor(baseUrl = "", tableName = "") {
         this.baseUrl = baseUrl;
+        this.projectName = "mdc"
         this.tableName = tableName;
         this.queryResult = {} | null;
     }
@@ -29,10 +30,29 @@ class FetchHandler {
         }
     }
 
-    async getDataAsync() {
-        const endpoint = `${this.baseUrl}/api/{...}/{...}`;
+    async listDataAsync(tName) {
+        if (!this.tableName) {
+            this.tableName = tName
+        }
 
-        return this.queryResult
+        try {
+            const endpoint = `${this.baseUrl}/api/${this.projectName}/${this.tableName}`;
+            response = await this.fetchData(endpoint, {
+                method: "GET",
+            })
+    
+            if (!response.ok) {
+                throw Error(message=`Unable of fetching data bad response -> ${response.status}`)
+            }
+    
+            const data = await response.json()
+    
+            this.queryResult = data.data
+    
+            return this.queryResult
+        } catch (error) {
+            return null;
+        }
     }
 
     async getDataByKeyAsync(key) {
@@ -44,4 +64,10 @@ class FetchHandler {
     async postDataAsync() {
 
     }
+
+    constrcutor_validator() {
+        pass
+    }
 }
+
+export { FetchHandler };
