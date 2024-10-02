@@ -3,71 +3,149 @@ class FetchHandler {
         this.baseUrl = baseUrl;
         this.projectName = "mdc"
         this.tableName = tableName;
-        this.queryResult = {} | null;
+        this.queryResult = {};
     }
 
-    async fetchData(URI, initializer) {
-        var badResponse = null;
+    async fetchData(URI, initializer = {}) {
         try {
             const response = await fetch(URI, initializer);
 
             if (!response.ok) {
-                badResponse = response;
                 throw new Error(`Error: ${response.statusText}`);
             }
 
-            const data = await response.json();
-            this.queryResult = data;
-
-            return this.queryResult
+            return response;
 
         } catch (error) {
-            console.error("Failed to fetch data:", error);
+            console.error("Failed to fetch data -> ", error);
+
             return {
-                "status": badResponse.status,
-                "text": badResponse.statusText,
+                ok: false,
+                status: error.status || 'Network Error',
+                message: error.message || 'Unable to fetch data',
             }
         }
     }
 
     async listDataAsync(tName) {
-        if (!this.tableName) {
-            this.tableName = tName
-        }
+        this.tableName = tName
 
         try {
             const endpoint = `${this.baseUrl}/api/${this.projectName}/${this.tableName}`;
-            response = await this.fetchData(endpoint, {
-                method: "GET",
-            })
+            const response = await this.fetchData(endpoint)
     
             if (!response.ok) {
-                throw Error(message=`Unable of fetching data bad response -> ${response.status}`)
+                throw Error(`Unable of fetching data, bad response -> ${response.status}`)
             }
-    
+
             const data = await response.json()
-    
-            this.queryResult = data.data
+
+            this.queryResult = data
     
             return this.queryResult
         } catch (error) {
-            return null;
+            return {
+                status: error.status || 'Error',
+                text: error.message || 'Failed to list data',
+            };
         }
     }
 
-    async getDataByKeyAsync(key) {
-        const endpoint = "";
+    async getDataByKeyAsync(key, tName) {
+        try {
+            const endpoint = `${this.baseUrl}/api/${this.projectName}/${tName}/id/${key}`;
+            const response = await this.fetchData(endpoint);
+            if (!response.ok) {
+                throw Error(`Unable of fetching data, bad response -> ${response.status}`)
+            }
 
-        return this.queryResult
+            const data = await response.json()
+
+            this.queryResult = data
+
+            return this.queryResult
+        } catch (error) {
+            return {
+                status: error.status || 'Error',
+                text: error.message || 'Failed to get data',
+            };
+        }
     }
 
-    async postDataAsync() {
+    async postDataAsync(tName, dataObj) {
+        try {
+            const endpoint = `${this.baseUrl}/api/${this.projectName}/${tName}`;
+            const response = await this.fetchData(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataObj),
+            });
 
+            if (!response.ok) {
+                throw Error(`Unable of fetching data, bad response -> ${response.status}`)
+            }
+
+            return response;
+        } catch (error) {
+            return {
+                status: error.status || 'Error',
+                text: error.message || 'Failed to get data',
+            };
+        }
     }
 
-    constrcutor_validator() {
-        pass
+    async updateDataAsync(key, tName, dataObj) {
+        try {
+            const endpoint = `${this.baseUrl}/api/${this.projectName}/${tName}/id/${key}`;
+            const response = await this.fetchData(endpoint, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataObj),
+            });
+
+            if (!response.ok) {
+                throw Error(`Unable of fetching data, bad response -> ${response.status}`)
+            }
+
+            return response;
+        } catch (error) {
+            return {
+                status: error.status || 'Error',
+                text: error.message || 'Failed to get data',
+            };
+        }
     }
+
+    async deleteDataAsync(key, tName) {
+        try {
+            const endpoint = `${this.baseUrl}/api/${this.projectName}/${tName}/id/${key}`;
+            const response = await this.fetchData(endpoint, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // body: JSON.stringify({
+                //     id: key
+                // })
+            });
+            if (!response.ok) {
+                throw Error(`Unable of fetching data, bad response -> ${response.status}`)
+            }
+
+            return true;
+        } catch (error) {
+            return {
+                status: error.status || 'Error',
+                text: error.message || 'Failed to get data',
+            };
+        }
+    }
+
+    constrcutor_validator() {}
 }
 
 export { FetchHandler };

@@ -1,9 +1,7 @@
-@model MapaDeConocimiento.Pages.Components.Manage.TableModelBackend
-
 <div class="table-container">
     <div class="queries-container">
         <div class="query-input-container">
-            <input type="text", placeholder="Insert text">
+            <input type="text", placeholder="Insert text" id="search-r-input">
             <button class="search-btn" id="search-btn">Search</button>
         </div>
         <div class="query-button-container">
@@ -11,31 +9,12 @@
             <button class="create-btn" id="create-btn">Create</button>
         </div>
     </div>
-    <table class="register-table" id="registers-table" table-name="proyecto">
+    <table class="register-table" id="registers-table" table-name="">
         <thead>
-            <tr>
-                @foreach (string field in @Model.Fields) 
-                {
-                    <th class="field" scope="col">@field</th>
-                }
-                <th class="field">Manage</th>
-            </tr>
+            @*    loaded header      *@
         </thead>
         <tbody>
-            <tr>
-                <td>r1</td> @*{ from backend  *@
-                <td>r2</td> @*  from backend  *@
-                <td>r3</td> @*  from backend  *@
-                <td>r4</td> @*  from backend } *@
-                <td class="updt_del_buttons">
-                    <button>
-                        <img src="~/images/edit.png" id="update-btn" alt="edit" asp-append-version="true">
-                    </button>
-                    <button>
-                        <img src="~/images/delete.png" id="delete-btn" alt="delete" asp-append-version="true">
-                    </button>
-                </td>
-            </tr>
+            @*   Loaded registers    *@
         </tbody>
     </table>
     <div class="pag">
@@ -56,12 +35,12 @@
 </div>
 
 <div class="table-pages">
-    <button class="table-c" id="proyecto">Proyecto</button>
-    <button class="table-c" id="tipo_proyecto">Tipo Producto</button>
-    <button class="table-c" id="termino_clave">Termino Clave</button>
+    <button class="table-c" id="proyecto" table-name="proyecto">Proyecto</button>
+    <button class="table-c" id="tipo_proyecto" table-name="tipo_producto">Tipo Producto</button>
+    <button class="table-c" id="termino_clave" table-name="termino_clave">Termino Clave</button>
 </div>
 
 @* fragment? *@
-<partial name="MTemplates/_NewRegisterForm.cshtml" model="@Model" />
-<partial name="MTemplates/_UpdateRegisterForm.cshtml" model="@Model" />
+<partial name="MTemplates/_NewRegisterForm.cshtml"  />
+<partial name="MTemplates/_UpdateRegisterForm.cshtml" />
 @* fragment? *@

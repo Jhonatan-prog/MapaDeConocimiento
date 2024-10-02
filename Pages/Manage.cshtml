@@ -1,12 +1,6 @@
 @page "/manage"
-@model MapaDeConocimiento.Pages.Pages_Manage
 
-@{
-    var tableModel = new MapaDeConocimiento.Pages.Components.Manage.TableModelBackend();
-    tableModel.OnGet(); // Call the method to populate the model
-}
-
-<partial name="Components/Manage/CrudTableComp" model="tableModel" />
+<partial name="Components/Manage/CrudTableComp"  />
 
 @section Scripts {
     <script type="module" src="~/js/Manage/formInteraction.js"></script>

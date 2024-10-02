@@ -1,35 +1,53 @@
-using Microsoft.AspNetCore.Builder; // Importa el espacio de nombres necesario para construir y configurar la aplicación web.
-using Microsoft.Extensions.DependencyInjection; // Importa el espacio de nombres necesario para configurar los servicios de la aplicación.
-using Microsoft.Extensions.Hosting; // Importa el espacio de nombres necesario para trabajar con diferentes entornos (desarrollo, producción, etc.).
-using MapaDeConocimiento.Services; // Importa los servicios personalizados que se utilizarán en la aplicación.
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using MapaDeConocimiento.Services;
 
-var builder = WebApplication.CreateBuilder(args); // Crea un constructor para configurar la aplicación web ASP.NET Core.
+var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers(); // Agrega soporte para controladores MVC, permitiendo manejar solicitudes HTTP a través de acciones en los controladores.
-builder.Services.AddSingleton<ControlConexion>(); // Registra el servicio ControlConexion como singleton, asegurando que haya una única instancia compartida en toda la aplicación.
-builder.Services.AddSingleton<TokenService>(); // Registra el servicio TokenService como singleton, asegurando una única instancia compartida en toda la aplicación.
-
-builder.Services.AddCors(options => // Configura CORS (Cross-Origin Resource Sharing) para la aplicación.
+// Add services to the container
+builder.Services.AddRazorPages(); // Add Razor Pages support
+builder.Services.AddControllers(); // Add support for API controllers
+builder.Services.AddSingleton<ControlConexion>();
+builder.Services.AddSingleton<TokenService>();
+// CORS policy
+builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins", // Define una política de CORS llamada "AllowAllOrigins".
-        builder => builder.AllowAnyOrigin() // Permite solicitudes desde cualquier origen (dominio).
-                          .AllowAnyMethod() // Permite cualquier método HTTP (GET, POST, etc.).
-                          .AllowAnyHeader()); // Permite cualquier encabezado en las solicitudes.
+    options.AddPolicy("AllowAllOrigins", builder =>
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader());
 });
 
-var app = builder.Build(); // Construye la aplicación con las configuraciones especificadas anteriormente.
+var app = builder.Build();
 
-if (app.Environment.IsDevelopment()) // Verifica si la aplicación está en el entorno de desarrollo.
+// Configure the HTTP request pipeline
+if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage(); // Habilita una página de excepción detallada, útil para depurar errores durante el desarrollo.
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/Error"); // Handle exceptions
+    app.UseHsts(); // Enforce HTTP Strict Transport Security
 }
 
-app.UseHttpsRedirection(); // Fuerza la redirección de las solicitudes HTTP a HTTPS para mejorar la seguridad.
+app.UseHttpsRedirection(); // Redirect HTTP to HTTPS
+app.UseStaticFiles(); // Serve static files from wwwroot
 
-app.UseCors("AllowAllOrigins"); // Aplica la política de CORS que permite solicitudes desde cualquier origen.
+app.UseRouting(); // Enable routing
 
-app.UseAuthorization(); // Habilita el middleware de autorización, necesario para proteger rutas que requieren autenticación o autorización.
+app.UseAuthorization(); // Enable authorization
 
-app.MapControllers(); // Configura las rutas de los controladores para manejar las solicitudes HTTP.
+// Map API controllers and Razor Pages
+app.MapControllers(); // Map API controllers
+app.MapControllerRoute(
+    name: "defaultApi",
+    pattern: "api/{controller=Home}/{action=Index}/{id?}"
+);
+app.MapRazorPages(); // Map Razor Pages
 
-app.Run(); // Inicia la aplicación y comienza a escuchar las solicitudes entrantes.
+// Optional: You can define a default route if you have a main page
+app.MapGet("/", () => Results.Redirect("/Index"));
+
+app.Run(); // Start the application
