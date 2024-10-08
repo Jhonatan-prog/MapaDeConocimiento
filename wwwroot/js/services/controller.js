@@ -28,10 +28,8 @@ class FetchHandler {
     }
 
     async listDataAsync(tName) {
-        this.tableName = tName
-
         try {
-            const endpoint = `${this.baseUrl}/api/${this.projectName}/${this.tableName}`;
+            const endpoint = `${this.baseUrl}/api/${this.projectName}/${tName}`;
             const response = await this.fetchData(endpoint)
     
             if (!response.ok) {
@@ -41,7 +39,7 @@ class FetchHandler {
             const data = await response.json()
 
             this.queryResult = data
-    
+
             return this.queryResult
         } catch (error) {
             return {
@@ -51,9 +49,10 @@ class FetchHandler {
         }
     }
 
-    async getDataByKeyAsync(key, tName) {
+    async getDataByKeyAsync(tName, pkColum, pk) {
         try {
-            const endpoint = `${this.baseUrl}/api/${this.projectName}/${tName}/id/${key}`;
+            const endpoint = `${this.baseUrl}/api/${this.projectName}/${tName}/${pkColum}/${pk}`;
+            // const endpoint = `${this.baseUrl}/api/${this.projectName}/${tName}/id/${pk}`
             const response = await this.fetchData(endpoint);
             if (!response.ok) {
                 throw Error(`Unable of fetching data, bad response -> ${response.status}`)
@@ -96,9 +95,9 @@ class FetchHandler {
         }
     }
 
-    async updateDataAsync(key, tName, dataObj) {
+    async updateDataAsync(tName, pkColum, pk, dataObj) {
         try {
-            const endpoint = `${this.baseUrl}/api/${this.projectName}/${tName}/id/${key}`;
+            const endpoint = `${this.baseUrl}/api/${this.projectName}/${tName}/${pkColum}/${pk}`;
             const response = await this.fetchData(endpoint, {
                 method: 'PUT',
                 headers: {
@@ -120,32 +119,27 @@ class FetchHandler {
         }
     }
 
-    async deleteDataAsync(key, tName) {
+    async deleteDataAsync(tName, pkColum, pk) {
         try {
-            const endpoint = `${this.baseUrl}/api/${this.projectName}/${tName}/id/${key}`;
+            const endpoint = `${this.baseUrl}/api/${this.projectName}/${tName}/${pkColum}/${pk}`;
             const response = await this.fetchData(endpoint, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // body: JSON.stringify({
-                //     id: key
-                // })
             });
+
             if (!response.ok) {
-                throw Error(`Unable of fetching data, bad response -> ${response.status}`)
+                throw Error(`Unable of fetching data, bad response -> status: ${response.status}, message: ${response.message}`)
             }
 
             return true;
-        } catch (error) {
-            return {
-                status: error.status || 'Error',
-                text: error.message || 'Failed to get data',
-            };
+        } catch {
+            return false;
         }
     }
 
-    constrcutor_validator() {}
+    constructor_validator() {}
 }
 
 export { FetchHandler };

@@ -11,6 +11,27 @@ function addCustomAttributeIfMissing() {
     });
 }
 
+function clearTable(tableChange = false) {
+    const $currentTable = DOM.querySelector('#registers-table');
+    const $thead = $currentTable.firstElementChild;
+    const $tbody = $currentTable.lastElementChild;
+
+    if (!$thead.children.length && !$tbody.children.length) return;
+
+    if (tableChange) {
+        $thead.firstElementChild.remove();
+        const theadTr = $thead.children;
+        for (let i = theadTr.length - 1; i >= 0; i--) {
+            $tbody.removeChild(bodyTr[i]); // Remove each child
+        }
+    }
+
+    const bodyTr = $tbody.children;
+    for (let i = bodyTr.length - 1; i >= 0; i--) {
+        $tbody.removeChild(bodyTr[i]); // Remove each child
+    }
+}
+
 // Templates/Events
 const DOM = document;
 
@@ -53,6 +74,7 @@ async function tableSetUp() {
     $trFields.setAttribute("b-ga0mknigks", "")
     // form
     const formList = document.querySelectorAll("#form");
+    // const tablePkColumn = Object.keys(registersList[0])[0]; generates error -> tipo_producto id yuva, termino_clave termino yuva
 
     // Inserting fields
     for (let i = 0; i < Object.keys(registersList[0]).length; i++) { // just one iteration
@@ -89,11 +111,11 @@ async function tableSetUp() {
     // List
     const listBtn = DOM.getElementById("list-btn");
     listBtn.addEventListener('click', async (e) => {
+        const tablePkColumn = Object.keys(registersList[0])[0];
         if (!$currentTable) return console.error('Table with ID "registers-table" not found');
 
-        console.log(tableName)
-    
         if ($currentTable instanceof HTMLElement) {
+            clearTable()
             // Inserting rows
             for (const rgIndex in registersList) { // N iterations
                 const $trRows = document.createElement("tr");
@@ -146,9 +168,9 @@ async function tableSetUp() {
             deleteBtns.forEach(deleteBtn => {
                 deleteBtn.addEventListener('click', async (e) => {
                     const register = e.currentTarget.parentNode.parentNode.parentNode.firstChild
-                    const id = register.textContent
+                    const pk = register.textContent
 
-                    await APIFetcher.deleteDataAsync(id, tableName)
+                    await APIFetcher.deleteDataAsync(tableName, tablePkColumn, pk)
                 })
             });
 
@@ -156,14 +178,18 @@ async function tableSetUp() {
         } else {
             console.error('currentTable is not a valid HTMLElement:', $currentTable);
         }
-    }, { once: true });
-    
+    });
+
     // GET
     const searchBtn = DOM.getElementById("search-btn");
     searchBtn.addEventListener('click', async () => {
-        const id = DOM.getElementById("search-r-input").value;
-        const registers = await APIFetcher.getDataByKeyAsync(id, tableName);
-    
+        const pk = DOM.getElementById("search-r-input").value;
+        const tablePkColumn = Object.keys(registersList[0])[0];
+        console.log(tableName, tablePkColumn, pk)
+        const registers = await APIFetcher.getDataByKeyAsync(tableName, tablePkColumn, pk);
+
+        clearTable(false);
+
         // Inserting rows
         for (const rgIndex in registers) { // N iterations
             const $trRows = document.createElement("tr");
@@ -175,7 +201,7 @@ async function tableSetUp() {
     
                 $trRows.appendChild($row);
             }
-    
+
             // Btn container
             const $btnContainer = document.createElement('td');
             $btnContainer.classList.add('updt_del_buttons');
@@ -216,8 +242,8 @@ async function tableSetUp() {
         deleteBtns.forEach(deleteBtn => {
             deleteBtn.addEventListener('click', async (e) => {
                 const register = e.currentTarget.parentNode.parentNode.firstChild
-                const id = register.textContent
-                await APIFetcher.deleteDataAsync(id, tableName)
+                const pk = register.textContent
+                await APIFetcher.deleteDataAsync(tableName, tablePkColumn, pk)
             })
         });
     })
@@ -225,14 +251,14 @@ async function tableSetUp() {
     // submitting
     formList.forEach($form => {
         const type = $form.getAttribute("type");
-        
+
         if (type === "post") {
             $form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-    
+
                 const inputsObj = $form.querySelectorAll("div.create form#form input");
                 const formData = {};
-    
+
                 inputsObj.forEach($input => {
                     const fieldName = $input.getAttribute('name');
                     if (fieldName === '__RequestVerificationToken'|| fieldName === null) return;
@@ -244,17 +270,18 @@ async function tableSetUp() {
         } else {
             $form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-    
+
                 const inputsObj = $form.querySelectorAll("div.update form#form input");
                 const updatedData = {};
 
-                let key = null;
+                let pk = null;
+                const tablePkColumn = Object.keys(registersList[0])[0];
     
                 inputsObj.forEach($input => {
                     const fieldName = $input.getAttribute('name');
                     console.log(fieldName)
-                    if (fieldName === "id") {
-                        key = $input.value;
+                    if (fieldName === tablePkColumn) {
+                        pk = $input.value;
                         return;
                     } else if (fieldName === '__RequestVerificationToken'|| fieldName === null) {
                         return
@@ -263,7 +290,7 @@ async function tableSetUp() {
                     };
                 });
 
-                const jsonResponse = await APIFetcher.updateDataAsync(key, tableName, updatedData);
+                const jsonResponse = await APIFetcher.updateDataAsync(tableName, tablePkColumn, pk, updatedData);
             });
         }
     });
@@ -276,6 +303,7 @@ tablesNav.forEach($button => {
         const $currentTable = DOM.querySelector('#registers-table');
         $currentTable.setAttribute('table-name', table_name);
 
+        clearTable(true);
         tableSetUp();
     })
 }) 

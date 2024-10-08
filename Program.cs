@@ -5,9 +5,9 @@ using MapaDeConocimiento.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
-builder.Services.AddRazorPages(); // Add Razor Pages support
-builder.Services.AddControllers(); // Add support for API controllers
+// Services
+builder.Services.AddRazorPages();
+builder.Services.AddControllers();
 builder.Services.AddSingleton<ControlConexion>();
 builder.Services.AddSingleton<TokenService>();
 // CORS policy
@@ -21,23 +21,23 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
+// HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
 else
 {
-    app.UseExceptionHandler("/Error"); // Handle exceptions
-    app.UseHsts(); // Enforce HTTP Strict Transport Security
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
 }
 
-app.UseHttpsRedirection(); // Redirect HTTP to HTTPS
-app.UseStaticFiles(); // Serve static files from wwwroot
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 
-app.UseRouting(); // Enable routing
+app.UseRouting();
 
-app.UseAuthorization(); // Enable authorization
+app.UseAuthorization();
 
 // Map API controllers and Razor Pages
 app.MapControllers(); // Map API controllers
@@ -47,7 +47,4 @@ app.MapControllerRoute(
 );
 app.MapRazorPages(); // Map Razor Pages
 
-// Optional: You can define a default route if you have a main page
-app.MapGet("/", () => Results.Redirect("/Index"));
-
-app.Run(); // Start the application
+app.Run();
