@@ -29,7 +29,11 @@ const $currentTable = document.querySelector('table#registers-table');
 const qSelectorInitializer = {
     tableNavQSelector: "div.table-pages",
     formQSelectorAll: "form#form",
-    gobalListeners: { // actions
+    paginator: {
+        paginatorQSelector: "div.pag",
+        pagesContainerQSelector: "div.pages-container",
+    },
+    gobalListeners: {
         listBtnQSelector: "button#list-btn",
         searchBtnQSelector: "button#search-btn",
         searchInputQselector: "input#search-r-input",
@@ -41,7 +45,9 @@ const qSelectorInitializer = {
 
 const tableManager = new GenericTable(qSelectorInitializer);
 tableManager.tableSetUp($currentTable);
+tableManager.formSubmission(); // calling multiple times
 tableManager.tableNavegation();
+// tableManager.paginatorController();
 
 function handleUpdateBttnClickEvent() {
     const updateRegisterForm = document.querySelector("div.form-container.update"); // update form

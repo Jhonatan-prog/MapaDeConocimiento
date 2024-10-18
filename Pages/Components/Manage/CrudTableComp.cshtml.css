@@ -108,32 +108,28 @@ div.table-container table {
 }
 
 div.table-container table thead {
-    height: 45px;
     background-color: var(--standard-sky-color);
     box-shadow: 2px 2px 5px hsla(209, 73%, 55%, .6);
-}
 
-div.table-container thead th {
-    width: 150px; /* it is no needed */
+    & tr {
+        height: 50px;
+    }
 }
 
 div.table-container table tbody {
     overflow-y: auto;
 }
 
-table.register-table tbody td:not(:first-child) {
-    padding-top: .7em;
-    padding-bottom: .7em;
-    padding-right: .7em;       
+table.register-table tr {
+    height: 100px;
 }
 
 table tbody td.updt_del_buttons {
     display: flex;
 
-    height: 100%;
-
     align-items: center;
-    justify-content: space-evenly;
+    justify-content: center;
+    height: 100px;
 }
 
 tbody td.updt_del_buttons > button {
@@ -149,15 +145,45 @@ tbody td.updt_del_buttons > button {
 
 div.pag {
     display: flex;
+    align-items: baseline;
     justify-content: right;
 
     margin-top: 1.5em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+
+    text-align: center;
+    vertical-align: middle;
+}
+
+div.pag button.prev,
+div.pag button.next {
+    position: relative;
+
+    width: fit-content;
+    margin: 0 .2em 0 .2em;
+    padding: 0;
+
+    font-size: 1rem;
+    color: #5e5e5e;
+
+    border: none;
+    font-style: italic;
+    background-color: transparent;
+    transition: all 200ms ease-in-out;
+}
+
+div.pag button.prev:hover,
+div.pag button.next:hover {
+    color: #2a3c47;
 }
 
 div.pages-container {
     display: flex;
     align-items: center;
     justify-items: center;
+
+    transition: all 200ms ease-in-out;
 }
 
 div.pag div.pages-container > button {
@@ -167,31 +193,32 @@ div.pag div.pages-container > button {
     height: 20px;
     padding: 0 .4em 0 .4em;
     margin: 0 .2em 0 .2em;
-    
+
     justify-content: center;
-    
+
     color: #FBFBFB;
     border: none;
     border-radius: 3px;
     background-color: #31313186;
+    transition: all 300ms ease-in;
+}
+
+div.pag div.pages-container > button:hover {
+    background-color: #43A4FF;
+}
+
+div.pag div.pages-container > button:active {
+    background-color: #3486d3;
+}
+
+div.pag div.pages-container button.focus {
+    background-color: #43A4FF;
 }
 
 div.pages-container > button h4 {
     font-size: 1rem;
 }
 
-div.pag button:first-child,
-div.pag button:last-child {
-    position: relative;
-
-    width: 18px;
-    height: 18px;
-    margin: 0 .5em 0 .5em;
-    padding: 0;
-    
-    border: none;
-    background-color: transparent;
-}
 
 button#focus {
     background-color: #43A4FF;

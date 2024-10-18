@@ -7,9 +7,32 @@ class GenericFront {
         this.utils = new Utils();
     }
 
-    popUp(message) {
-        const $divContainer = document.createElement("div");
+    standarize(chain) {
 
+    }
+
+    popUp(message) {
+        const $popUpContainer = document.createElement("div");
+        $popUpContainer.classList.add("pop-up");
+        $popUpContainer.innerHTML = 
+        `
+            <p>${message}</p>
+            <div>
+                <button class="ok-btn" onclick="${clickHandler()}">Ok<button/>
+            </div>
+        `
+
+        document.body.appendChild($popUpContainer);
+
+        function clickHandler() {
+            $popUpContainer.remove();
+        }
+
+        setTimeout(() => {
+            if ($popUpContainer) {
+                $popUpContainer.remove();
+            }
+        }, 1500)
     }
 
     addEvent(elementOrQSelector, type = 'click', CbEventListener = () => null, options = {}) {
@@ -27,6 +50,10 @@ class GenericFront {
 }
 
 class TableApiEvents extends GenericFront {
+    constructor(backendAPIUrl) {
+        super(backendAPIUrl);
+    }
+
     async listRegisters(tableName) {
         const data = await this.APIConsumer.listDataAsync(tableName);
         return data;
@@ -54,8 +81,8 @@ class TableApiEvents extends GenericFront {
 }
 
 class GenericTable extends TableApiEvents {
-    constructor(elementQSelectorObj, table = null, tableName = "", tablePkColumn = "") {
-        super();
+    constructor(elementQSelectorObj, backendAPIUrl, table = null, tableName = "", tablePkColumn = "") {
+        super(backendAPIUrl);
 
         this.postRegister = this.postRegister.bind(this);
         this.updateRegister = this.updateRegister.bind(this);
@@ -67,6 +94,7 @@ class GenericTable extends TableApiEvents {
         this.tablePkColumn = tablePkColumn;
         this.elementQSelectorObj = elementQSelectorObj; // obj with all the QSelectors of each element (reference to each element)
         this.data = {}
+        this.dataPage = {}
     }
 
     tableNavegation() {
@@ -84,6 +112,8 @@ class GenericTable extends TableApiEvents {
                 const $table = this.table;
                 $table.setAttribute('table-name', this.tableName);
 
+                this.#clearPaginatorContaier();
+
                 await this.tableSetUp();
             })
         })
@@ -91,7 +121,7 @@ class GenericTable extends TableApiEvents {
 
     generateForm() {
         const formList = document.querySelectorAll(this.elementQSelectorObj['formQSelectorAll']);
-        const columns = Object.keys(this.data[0]);
+        const columns = Object.keys(this.dataPage[0]);
         formList.forEach(($form) => {
             for (let i = 0; i < columns.length; i++) {
                 const $fmLabel = document.createElement("label");
@@ -110,7 +140,7 @@ class GenericTable extends TableApiEvents {
             }
         })
 
-        this.formSubmission();
+        this.formSubmission(); // problem here, calling multiple times
     }
 
     generateHeader() {
@@ -120,7 +150,7 @@ class GenericTable extends TableApiEvents {
         const $trFields = document.createElement("tr");
         $trFields.setAttribute("b-ga0mknigks", "")
 
-        const columns = Object.keys(this.data[0]);
+        const columns = Object.keys(this.dataPage[0]);
         for (let i = 0; i < columns.length; i++) {
             const $field = document.createElement('th');
             const fieldName = columns[i];
@@ -139,8 +169,9 @@ class GenericTable extends TableApiEvents {
         $thead.appendChild($trFields);
     }
 
-    generateRegisters() {
-        const registerNodeList = this.data;
+    generateRegisters(fullSearch = false) {
+        const registerNodeList = fullSearch ? this.data : this.dataPage;
+
         for (const index in registerNodeList) { // 'n' iterations
             let register = registerNodeList[index];
             this.generateRegister(register);
@@ -193,12 +224,13 @@ class GenericTable extends TableApiEvents {
 
         await this.setUpData();
 
+        this.paginatorController();
+
         this.generateHeader();
         this.generateRegisters();
-
-        this.utils.addCustomAttributeIfMissing("table#registers-table"); // boostrap problem solution
-
         this.generateForm();
+
+        this.utils.addCustomAttributeIfMissing("div.table-container"); // solution to boostrap problem
 
         return this.table;
     }
@@ -209,13 +241,13 @@ class GenericTable extends TableApiEvents {
         const listBtn = document.querySelector(gobalListenerObj['listBtnQSelector']);
         this.addEvent(listBtn, 'click', async () => {
             const query = await this.listRegisters(this.tableName);
-            if (this.utils.isEqual(this.data, query)) return;
+            if (this.utils.isEqual(this.dataPage, query)) return;
 
-            this.setDataQueried(query);
+            this.setDataPageQueried(query);
 
             this.clearTable();
 
-            this.generateRegisters(this.data);
+            this.generateRegisters();
         });
 
         const searchBtn = document.querySelector(gobalListenerObj['searchBtnQSelector']);
@@ -223,13 +255,13 @@ class GenericTable extends TableApiEvents {
             const pk = document.querySelector(gobalListenerObj['searchInputQselector']).value;
             console.log(pk)
             const query = await this.getRegisterByKey(this.tableName, this.tablePkColumn, pk);
-            if (this.utils.isEqual(this.data, query)) return;
+            if (this.utils.isEqual(this.dataPage, query)) return;
 
             this.setDataQueried(query);
 
             this.clearTable();
 
-            this.generateRegisters(this.data);
+            this.generateRegisters(true);
         });
 
         const updateBtns = document.querySelectorAll(gobalListenerObj['updateBtnQSelectorAll']);
@@ -251,22 +283,13 @@ class GenericTable extends TableApiEvents {
 
                 const registers = await this.listRegisters(this.tableName);
 
-                this.setDataQueried(registers);
-                
+                this.setDataPageQueried(registers);
+
                 this.clearTable();
 
                 this.generateRegisters();
             });
         });
-    }
-
-    currentTable(tableQSelector) {
-        if (tableQSelector) {
-            const $currentTable = document.querySelector(tableQSelector);
-            this.table = $currentTable;
-        }
-
-        return this.table;
     }
 
     setTableName(newTableName) {
@@ -280,6 +303,10 @@ class GenericTable extends TableApiEvents {
     setDataQueried(newData) {
         this.data = newData;
     }
+
+    setDataPageQueried(newData) {
+        this.dataPage = newData;
+    } 
 
     async setUpData() {
         const tableName = this.table.getAttribute("table-name");
@@ -340,7 +367,8 @@ class GenericTable extends TableApiEvents {
         const postResponse = await this.postRegister(this.tableName, data);
 
         if (!postResponse.ok) {
-            // handle bad response
+            const message = `An error ocurred while saving new register in ${this.tableName}.`
+            this.popUp(message);
             return
         }
 
@@ -350,7 +378,10 @@ class GenericTable extends TableApiEvents {
 
         this.clearTable();
 
-        this.generateRegisters();
+        this.generateRegisters(true);
+
+        const message = `Register added successfully in ${this.tableName}.`
+        this.popUp(message);
     }
 
     async handlePutSubmit(event) {
@@ -375,7 +406,8 @@ class GenericTable extends TableApiEvents {
         const updateResponse = await this.updateRegister(this.tableName, this.tablePkColumn, pk, updatedData);
 
         if (!updateResponse.ok) {
-            // handle bad response
+            const message = `An error ocurred while updating register in ${this.tableName}.`
+            this.popUp(message);
             return
         }
 
@@ -385,7 +417,10 @@ class GenericTable extends TableApiEvents {
 
         this.clearTable();
 
-        this.generateRegisters();
+        this.generateRegisters(true);
+
+        const message = `Register updated successfully in ${this.tableName}.`
+        this.popUp(message);
     }
 
     clearForm() {
@@ -401,6 +436,82 @@ class GenericTable extends TableApiEvents {
             }
         })
     }
+
+    paginatorController(tableLength = 2) {
+        this.currentPaginatorPage = null;
+
+        let dataStart = 0;
+        let dataEnd = tableLength;
+
+        const paginatorObj = this.elementQSelectorObj['paginator'];
+
+        const $paginator = document.querySelector(paginatorObj['paginatorQSelector']);
+        const range = this.data.length - 0;
+
+        // Initial set-up
+        if (!range) {
+            $paginator.remove();
+            return;
+        };
+
+        this.dataPage = this.data.slice(dataStart, dataEnd); // Default page
+
+        let buttonQuantity = Math.ceil(range / tableLength);
+        for (let i = 0; i < buttonQuantity; i++) {
+            const $button = document.createElement("button");
+            $button.classList = `list`;
+            $button.setAttribute('page', i)
+            $button.textContent = `${i + 1}`;
+
+            if (i === 0) {
+                $button.classList.add("focus");
+                this.currentPaginatorPage = $button; // set first btn as default
+            };
+
+            this.addEvent($button, 'click', (e) => {
+                this.currentPaginatorPage.classList.remove("focus");
+
+                e.target.classList.add("focus");
+                const currentPage = parseInt(this.currentPaginatorPage.getAttribute('page'), 10);
+                const targetPage = parseInt(e.target.getAttribute('page'), 10);
+
+                const difference = Math.abs(currentPage - targetPage);
+                if (difference === 0) return;
+
+                const jump = tableLength * difference;
+                if (targetPage > currentPage) {
+                    dataStart +=  jump;
+                    dataEnd +=  jump;
+                } else if (targetPage < currentPage) {
+                    dataStart -= jump;
+                    dataEnd -= jump;
+                }
+
+                this.currentPaginatorPage = $button;
+                this.dataPage = this.data.slice(dataStart, dataEnd);
+
+                this.clearTable();
+
+                this.generateRegisters();
+            })
+
+            $paginator.querySelector(paginatorObj['pagesContainerQSelector']).appendChild($button);
+        }
+
+    }
+
+    #clearPaginatorContaier() {
+        const paginatorObj = this.elementQSelectorObj['paginator'];
+        const $paginator = document.querySelector(paginatorObj['paginatorQSelector']);
+        const $divBtnContainer = $paginator
+            .querySelectorAll(
+                paginatorObj['pagesContainerQSelector'].trim() + " " + "button"
+            )
+
+        $divBtnContainer.forEach($button => {
+            $button.remove();
+        });
+    };
 }
 
 export { GenericTable, TableApiEvents, GenericFront };
