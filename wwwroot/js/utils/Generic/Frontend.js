@@ -11,6 +11,16 @@ class GenericFront {
 
     }
 
+    handleError(response) {
+        if (!response.ok) {
+            const message = `An error occurred while updating the register in ${this.tableName}.`;
+            this.popUp(message);
+            return false;
+        }
+
+        return true;
+    }
+
     popUp(message) {
         const $popUpContainer = document.createElement("div");
         $popUpContainer.classList.add("pop-up");
@@ -32,7 +42,7 @@ class GenericFront {
             if ($popUpContainer) {
                 $popUpContainer.remove();
             }
-        }, 1500)
+        }, 3000)
     }
 
     addEvent(elementOrQSelector, type = 'click', CbEventListener = () => null, options = {}) {
@@ -92,7 +102,7 @@ class GenericTable extends TableApiEvents {
         this.table = table;
         this.tableName = tableName;
         this.tablePkColumn = tablePkColumn;
-        this.elementQSelectorObj = elementQSelectorObj; // obj with all the QSelectors of each element (reference to each element)
+        this.elementQSelectorObj = elementQSelectorObj; // obj with all the QSelectors of each element (reference to each element in DOM)
         this.data = {}
         this.dataPage = {}
     }
@@ -121,8 +131,18 @@ class GenericTable extends TableApiEvents {
 
     generateForm() {
         const formList = document.querySelectorAll(this.elementQSelectorObj['formQSelectorAll']);
-        const columns = Object.keys(this.dataPage[0]);
+        const columns = Object.keys(this.dataPage[0] /* first Obj as reference */ );
         formList.forEach(($form) => {
+            const formType = $form.getAttribute("type");
+            if (formType === 'update') {
+                const $pkInput = document.createElement("input");
+                $pkInput.classList.add("hidden-pk");
+                $pkInput.setAttribute("type", "hidden");
+                $pkInput.setAttribute("pk-column", columns[0]);
+
+                $form.appendChild($pkInput);
+            }
+
             for (let i = 0; i < columns.length; i++) {
                 const $fmLabel = document.createElement("label");
                 let fieldName = columns[i];
@@ -139,8 +159,6 @@ class GenericTable extends TableApiEvents {
                 $form.appendChild($fmInput);
             }
         })
-
-        this.formSubmission(); // problem here, calling multiple times
     }
 
     generateHeader() {
@@ -186,6 +204,8 @@ class GenericTable extends TableApiEvents {
 
         const $row = document.createElement("tr");
         $row.setAttribute("b-ga0mknigks", "")
+        $row.setAttribute("data-pk-value", register[this.tablePkColumn]);
+
         for (const fieldName in register) {
             const $field = document.createElement('td');
             $field.textContent = register[fieldName]; // Get value
@@ -250,7 +270,7 @@ class GenericTable extends TableApiEvents {
             this.generateRegisters();
         });
 
-        const searchBtn = document.querySelector(gobalListenerObj['searchBtnQSelector']);
+        const searchBtn = document.querySelector(gobalListenerObj['searchBtnQSelector']); // full search (add onchange)
         this.addEvent(searchBtn, 'click', async () => {
             const pk = document.querySelector(gobalListenerObj['searchInputQselector']).value;
             console.log(pk)
@@ -266,14 +286,40 @@ class GenericTable extends TableApiEvents {
 
         const updateBtns = document.querySelectorAll(gobalListenerObj['updateBtnQSelectorAll']);
         updateBtns.forEach($updateBttn => {
+            this.addEvent($updateBttn, 'click', async (e) => {
+                const $register = e.target.closest('tr');
+                const pk = $register.getAttribute('data-pk-value');
+
+                const $hiddenInput = document.querySelector('input.hidden-pk');
+                $hiddenInput.setAttribute("pk-value", pk)
+
+                const currentRegister = (await this.getRegisterByKey(this.tableName, this.tablePkColumn, pk))[0];
+                const columns = Object.keys(currentRegister);
+                console.log(currentRegister)
+
+                const $updateForm = document.querySelector('[type="update"]');
+                let count = 0;
+                $updateForm.querySelectorAll('input')
+                    .forEach(($input) => {
+                        const ignore = ['__RequestVerificationToken', null];
+                        if (
+                            ignore.includes($input.getAttribute('name')) 
+                            || $input.getAttribute('type') === 'submit'
+                        ) return;
+
+                        $input.value = currentRegister[columns[count]]
+
+                        count += 1
+                    })
+            });
             this.addEvent($updateBttn, 'click', gobalListenerObj['updateClickEvent']);
         });
 
         const deleteBtns = document.querySelectorAll(gobalListenerObj['deleteBtnQSelectorAll']);
         deleteBtns.forEach($deleteBttn => {
             this.addEvent($deleteBttn, 'click', async (e) => {
-                const register = e.currentTarget.parentNode.parentNode.firstChild; // change way of tracking pk
-                const pk = register.textContent;
+                const $register = e.target.closest('tr');
+                const pk = $register.getAttribute('data-pk-value');
 
                 const success = await this.deleteRegister(this.tableName, this.tablePkColumn, pk);
 
@@ -380,7 +426,7 @@ class GenericTable extends TableApiEvents {
 
         this.generateRegisters(true);
 
-        const message = `Register added successfully in ${this.tableName}.`
+        const message = `Register added successfully into ${this.tableName}.`
         this.popUp(message);
     }
 
@@ -390,17 +436,15 @@ class GenericTable extends TableApiEvents {
         const inputNodeList = document.querySelectorAll('[type="update"]' + " " + "input");
         const updatedData = {}
 
-        let pk = null;
+        const $hiddenInput = document.querySelector('input.hidden-pk');
+        const pk = $hiddenInput.getAttribute('pk-value');
+
         inputNodeList.forEach($input => {
             const fieldName = $input.getAttribute('name');
-            if (fieldName === this.tablePkColumn) {
-                pk = $input.value;
-                return;
-            } else if (fieldName === '__RequestVerificationToken'|| fieldName === null) {
+            if (fieldName === '__RequestVerificationToken'|| fieldName === null) {
                 return
-            } else {
-                updatedData[fieldName] = $input.value;
-            };
+            }
+            updatedData[fieldName] = $input.value;
         });
 
         const updateResponse = await this.updateRegister(this.tableName, this.tablePkColumn, pk, updatedData);

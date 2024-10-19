@@ -24,7 +24,7 @@ updateRegisterForm.addEventListener('click', (e) => {
     e.stopPropagation();
 });
 
-// table set-up
+// table qSelectorInitializer
 const $currentTable = document.querySelector('table#registers-table');
 const qSelectorInitializer = {
     tableNavQSelector: "div.table-pages",
@@ -44,10 +44,9 @@ const qSelectorInitializer = {
 }
 
 const tableManager = new GenericTable(qSelectorInitializer);
-tableManager.tableSetUp($currentTable);
-tableManager.formSubmission(); // calling multiple times
-tableManager.tableNavegation();
-// tableManager.paginatorController();
+tableManager.tableSetUp($currentTable); // first initialization
+tableManager.formSubmission(); // Set-up forms interactions
+tableManager.tableNavegation(); // Set-up table navegator
 
 function handleUpdateBttnClickEvent() {
     const updateRegisterForm = document.querySelector("div.form-container.update"); // update form
