@@ -447,6 +447,301 @@ namespace MapaDeConocimiento.Controllers
         {
             return new SqlParameter(name, value ?? DBNull.Value); // Crea un parámetro para SQL Server y LocalDB.
         }
+
+        [AllowAnonymous]
+        [HttpPost("ejecutar-consulta-parametrizada")]
+        public IActionResult EjecutarConsultaParametrizada([FromBody] JsonElement cuerpoSolicitud)
+        {
+            try
+            {
+                // Verifica si el cuerpo de la solicitud contiene la consulta SQL
+                if (!cuerpoSolicitud.TryGetProperty("consulta", out var consultaElement) || consultaElement.ValueKind != JsonValueKind.String)
+                {
+                    return BadRequest("Debe proporcionar una consulta SQL válida en el cuerpo de la solicitud.");
+                }
+        
+                string consultaSQL = consultaElement.GetString() ?? throw new ArgumentException("La consulta SQL no puede estar vacía.");
+        
+                // Verifica si el cuerpo de la solicitud contiene los parámetros
+                var parametros = new List<DbParameter>();
+                if (cuerpoSolicitud.TryGetProperty("parametros", out var parametrosElement) && parametrosElement.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var parametro in parametrosElement.EnumerateObject())
+                    {
+                        string paramName = parametro.Name.StartsWith("@") ? parametro.Name : "@" + parametro.Name;
+                        object? paramValue = parametro.Value.ValueKind == JsonValueKind.Null ? DBNull.Value : parametro.Value.GetRawText().Trim('"');
+                        parametros.Add(controlConexion.CrearParametro(paramName, paramValue));
+                    }
+                }
+
+                // Abrir la conexión a la base de datos
+                controlConexion.AbrirBd();
+
+                // Ejecutar la consulta SQL
+                var resultado = controlConexion.EjecutarConsultaSql(consultaSQL, parametros.ToArray());
+        
+                // Cerrar la conexión a la base de datos
+                controlConexion.CerrarBd();
+        
+                // Verifica si hay resultados
+                if (resultado.Rows.Count == 0)
+                {
+                    return NotFound("No se encontraron resultados para la consulta proporcionada.");
+                }
+        
+                // Procesar resultados a formato JSON
+                var lista = new List<Dictionary<string, object?>>();
+                foreach (DataRow fila in resultado.Rows)
+                {
+                    var propiedades = resultado.Columns.Cast<DataColumn>()
+                        .ToDictionary(col => col.ColumnName, col => fila[col] == DBNull.Value ? null : fila[col]);
+                    lista.Add(propiedades);
+                }
+        
+                // Retornar resultados en formato JSON
+                return Ok(lista);
+            }
+            catch (SqlException sqlEx)
+            {
+                // Manejo de excepciones SQL
+                controlConexion.CerrarBd(); // Asegura que la conexión se cierre en caso de error
+                Console.WriteLine($"SQL Error: {sqlEx.Message}");
+                return StatusCode(500, new { Mensaje = "Error en la base de datos.", Detalle = sqlEx.Message });
+            }
+            catch (Exception ex)
+            {
+                // Manejo de excepciones generales
+                controlConexion.CerrarBd(); // Asegura que la conexión se cierre en caso de error
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, new { Mensaje = "Se presentó un error:", Detalle = ex.Message });
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("consulta-compleja")]
+        public IActionResult ConsultaCompleja(string projectName, [FromBody] JsonElement criterios)
+        {
+            if (criterios.ValueKind == JsonValueKind.Undefined)
+                return BadRequest("Los criterios de consulta no pueden estar vacíos.");
+
+            try
+            {
+                if (!criterios.TryGetProperty("TablaPrincipal", out var tablaPrincipalElement))
+                    return BadRequest("Debe especificar una tabla principal.");
+
+                string tablaPrincipal = tablaPrincipalElement.TryGetProperty("Nombre", out var nombreProperty) 
+                    ? nombreProperty.GetString() ?? throw new ArgumentException("El nombre de la tabla principal no puede ser nulo.")
+                    : throw new ArgumentException("La propiedad 'Nombre' es requerida para la tabla principal.");
+        
+                string aliasPrincipal = tablaPrincipalElement.TryGetProperty("Alias", out var aliasProperty)
+                    ? aliasProperty.GetString() ?? tablaPrincipal // Si no se proporciona un alias, usamos el nombre de la tabla
+                    : tablaPrincipal; // Si la propiedad 'Alias' no existe, usamos el nombre de la tabla
+
+                if (!criterios.TryGetProperty("CamposSeleccionados", out var camposSeleccionadosElement) || camposSeleccionadosElement.GetArrayLength() == 0)
+                    return BadRequest("Debe seleccionar al menos un campo para la consulta.");
+
+                var camposSeleccionados = camposSeleccionadosElement.EnumerateArray().Select(e => e.GetString()).ToList();
+                string camposSeleccionadosStr = string.Join(", ", camposSeleccionados);
+
+                var joinClauses = new List<string>();
+                var whereClauses = new List<string>();
+                var havingClauses = new List<string>();
+                var parameters = new List<DbParameter>();
+
+                string comandoSQL = $"SELECT {camposSeleccionadosStr} FROM {tablaPrincipal} {aliasPrincipal}";
+
+                // Procesar JOINs
+                if (criterios.TryGetProperty("Joins", out var joinsElement))
+                {
+                    foreach (var join in joinsElement.EnumerateArray())
+                    {
+                        string? tablaSecundaria = join.GetProperty("TablaSecundaria").GetString();
+                        string? tipoJoin = join.GetProperty("TipoJoin").GetString();
+                        string? condicionJoin = join.GetProperty("CondicionJoin").GetString();
+
+                        if (!string.IsNullOrWhiteSpace(tablaSecundaria) && !string.IsNullOrWhiteSpace(condicionJoin))
+                        {
+                            joinClauses.Add($"{tipoJoin} JOIN {tablaSecundaria} ON {condicionJoin}");
+                        }
+                    }
+                }
+
+                // Procesar WHERE
+                if (criterios.TryGetProperty("CondicionesWhere", out var whereElement))
+                {
+                    for (int i = 0; i < whereElement.GetArrayLength(); i++)
+                    {
+                        var condicion = whereElement[i];
+                        string? campo = condicion.GetProperty("Campo").GetString();
+                        string? operador = condicion.GetProperty("Operador").GetString();
+                        var valor = condicion.GetProperty("Valor");
+
+                        if (!string.IsNullOrWhiteSpace(campo) && !string.IsNullOrWhiteSpace(operador))
+                        {
+                            if (operador.Equals("BETWEEN", StringComparison.OrdinalIgnoreCase) && valor.ValueKind == JsonValueKind.Array && valor.GetArrayLength() == 2)
+                            {
+                                var valores = valor.EnumerateArray().ToList();
+                                string paramInicio = $"@Where{i}_Start";
+                                string paramFin = $"@Where{i}_End";
+                                whereClauses.Add($"{campo} {operador} {paramInicio} AND {paramFin}");
+                                parameters.Add(CreateParameter(paramInicio, valores[0].GetString()));
+                                parameters.Add(CreateParameter(paramFin, valores[1].GetString()));
+                            }
+                            else if (operador.Equals("IS NULL", StringComparison.OrdinalIgnoreCase) || operador.Equals("IS NOT NULL", StringComparison.OrdinalIgnoreCase))
+                            {
+                                whereClauses.Add($"{campo} {operador}");
+                            }
+                            else
+                            {
+                                string paramName = $"@Where{i}";
+                                whereClauses.Add($"{campo} {operador} {paramName}");
+                                parameters.Add(CreateParameter(paramName, valor.GetRawText()));
+                            }
+                        }
+                    }
+                }
+
+                // Procesar JOIN antes del GROUP BY
+                if (joinClauses.Any())
+                {
+                    comandoSQL += " " + string.Join(" ", joinClauses);
+                }
+
+                // Procesar GROUP BY
+                if (criterios.TryGetProperty("CamposAgrupacion", out var groupByElement))
+                {
+                    var camposAgrupacion = groupByElement.EnumerateArray().Select(e => e.GetString()).ToList();
+                    if (camposAgrupacion.Any())
+                    {
+                        comandoSQL += $" GROUP BY {string.Join(", ", camposAgrupacion)}";
+                    }
+                }
+
+                // Procesar HAVING
+                if (criterios.TryGetProperty("CondicionesHaving", out var havingElement))
+                {
+                    for (int i = 0; i < havingElement.GetArrayLength(); i++)
+                    {
+                        var condicion = havingElement[i];
+                        string? campo = condicion.GetProperty("Campo").GetString();
+                        string? operador = condicion.GetProperty("Operador").GetString();
+                        var valor = condicion.GetProperty("Valor");
+
+                        if (!string.IsNullOrWhiteSpace(campo) && !string.IsNullOrWhiteSpace(operador))
+                        {
+                            string paramName = $"@Having{i}";
+                            havingClauses.Add($"{campo} {operador} {paramName}");
+                            parameters.Add(CreateParameter(paramName, valor.GetRawText()));
+                        }
+                    }
+                }
+
+                // Aplicar la cláusula HAVING
+                if (havingClauses.Any())
+                {
+                    comandoSQL += " HAVING " + string.Join(" AND ", havingClauses);
+                }
+
+                // Procesar WHERE
+                if (whereClauses.Any())
+                {
+                    comandoSQL += " WHERE " + string.Join(" AND ", whereClauses);
+                }
+
+                Console.WriteLine($"Executing complex SQL query: {comandoSQL}");
+                foreach (var param in parameters)
+                {
+                    Console.WriteLine($"Parameter: {param.ParameterName} = {param.Value}");
+                }
+
+                controlConexion.AbrirBd();
+                var resultado = controlConexion.EjecutarConsultaSql(comandoSQL, parameters.ToArray());
+                controlConexion.CerrarBd();
+
+                if (resultado.Rows.Count == 0)
+                {
+                    return NotFound("No se encontraron resultados para la consulta.");
+                }
+
+                var lista = new List<Dictionary<string, object?>>();
+                foreach (DataRow fila in resultado.Rows)
+                {
+                    var propiedades = resultado.Columns.Cast<DataColumn>()
+                                       .ToDictionary(col => col.ColumnName, col => fila[col] == DBNull.Value ? null : fila[col]);
+                    lista.Add(propiedades);
+                }
+
+                return Ok(lista);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred: {ex.Message}");
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("ejecutar-procedimiento/{procedureName}")]
+        public IActionResult EjecutarProcedimientoAlmacenado(string procedureName, [FromBody] JsonElement body)
+        {
+            // Verificar que el nombre del procedimiento no esté vacío
+            if (string.IsNullOrWhiteSpace(procedureName))
+            {
+                return BadRequest(new { Mensaje = "El nombre del procedimiento es requerido." });
+            }
+
+            try
+            {
+                // Abrir la conexión a la base de datos
+                controlConexion.AbrirBd();
+
+                // Obtener la conexión
+                var connection = controlConexion.GetConnection();
+                if (connection == null || connection.State != ConnectionState.Open)
+                {
+                    return StatusCode(500, "No se pudo obtener una conexión válida a la base de datos.");
+                }
+
+                using (var command = new SqlCommand(procedureName, (SqlConnection)connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    // Agregar parámetros al comando
+                    foreach (var property in body.EnumerateObject())
+                    {
+                        string paramName = property.Name.StartsWith("@") ? property.Name : "@" + property.Name;
+                        if (property.Name.EndsWith("productos") && property.Value.ValueKind == JsonValueKind.Array)
+                        {
+                            var productosJson = JsonSerializer.Serialize(property.Value);
+                            command.Parameters.AddWithValue(paramName, productosJson);
+                        }
+                        else
+                        {
+                            command.Parameters.AddWithValue(paramName, property.Value.GetRawText().Trim('"'));
+                        }
+                    }
+
+                    // Ejecutar el procedimiento almacenado
+                    int filasAfectadas = command.ExecuteNonQuery();
+                    controlConexion.CerrarBd(); // Cerrar la conexión a la base de datos
+
+                    return Ok(new { Mensaje = "Procedimiento almacenado ejecutado exitosamente.", FilasAfectadas = filasAfectadas });
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                controlConexion.CerrarBd(); // Asegura cerrar la conexión en caso de error
+                Console.WriteLine($"SQL Error: {sqlEx.Message}");
+                return StatusCode(500, new { Mensaje = "Error en la base de datos.", Detalle = sqlEx.Message });
+            }
+            catch (Exception ex)
+            {
+                controlConexion.CerrarBd(); // Asegura cerrar la conexión en caso de error general
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, new { Mensaje = "Error en el servidor.", Detalle = ex.Message });
+            }
+        }
+
     }
 }
 /*

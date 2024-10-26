@@ -30,8 +30,10 @@ const qSelectorInitializer = {
     tableNavQSelector: "div.table-pages",
     formQSelectorAll: "form#form",
     paginator: {
+        prevBtnQSelector: "div.pag button.prev",
         paginatorQSelector: "div.pag",
         pagesContainerQSelector: "div.pages-container",
+        nextBtnQSelector: "div.pag button.next",
     },
     gobalListeners: {
         listBtnQSelector: "button#list-btn",

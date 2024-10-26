@@ -7,8 +7,11 @@ class GenericFront {
         this.utils = new Utils();
     }
 
-    standarize(chain) {
-
+    standarize(string) {
+        for (let i = 0; i < string.length; i++) {
+            
+        }
+        return 
     }
 
     handleError(response) {
@@ -88,6 +91,11 @@ class TableApiEvents extends GenericFront {
         const data = await this.APIConsumer.deleteDataAsync(tableName, pkColum, pk);
         return data;
     }
+
+    async parameterizedQuery(bodyObj) {
+        const data = await this.APIConsumer.parameterizedQueryAsync(bodyObj);
+        return data;
+    }
 }
 
 class GenericTable extends TableApiEvents {
@@ -105,6 +113,22 @@ class GenericTable extends TableApiEvents {
         this.elementQSelectorObj = elementQSelectorObj; // obj with all the QSelectors of each element (reference to each element in DOM)
         this.data = {}
         this.dataPage = {}
+
+        // change logic (static)
+        this.tableRelations = { // hardcoded
+            proyecto: [
+                'ac_proyecto', 'desarrolla', 
+                'aliado_proyecto', 'aa_proyecto', 
+                'ods_proyecto', 'proyecto_linea',
+                /* 'palabras_clave', fix for this one*/ 'producto'
+            ],
+            producto: [
+                'docente_producto'
+            ],
+            tipo_producto: [
+                'producto'
+            ]
+        }
     }
 
     tableNavegation() {
@@ -295,9 +319,8 @@ class GenericTable extends TableApiEvents {
 
                 const currentRegister = (await this.getRegisterByKey(this.tableName, this.tablePkColumn, pk))[0];
                 const columns = Object.keys(currentRegister);
-                console.log(currentRegister)
 
-                const $updateForm = document.querySelector('[type="update"]');
+                const $updateForm = document.querySelector('[type="update"]'); // harcoded -> type="update"
                 let count = 0;
                 $updateForm.querySelectorAll('input')
                     .forEach(($input) => {
@@ -320,16 +343,47 @@ class GenericTable extends TableApiEvents {
             this.addEvent($deleteBttn, 'click', async (e) => {
                 const $register = e.target.closest('tr');
                 const pk = $register.getAttribute('data-pk-value');
+                console.log(pk)
 
+                // remove relations
+                if (Object.keys(this.tableRelations).includes(this.tableName)) {
+                    const tableRelation = this.tableRelations[this.tableName];
+                    for (let i = 0; i < tableRelation.length; i++) {
+                        const table = tableRelation[i];
+                        const column = this.tableName;
+    
+                        const SQLScript = {
+                            "consulta": `
+                                IF EXISTS (SELECT 1 FROM ${table} WHERE ${column} = @Codigo)
+                                BEGIN
+                                    DELETE FROM ${table} 
+                                    WHERE ${column} = @Codigo 
+                                END
+    
+                                SELECT * FROM proyecto;
+                            `,
+                            "parametros": {
+                                'Codigo': parseInt(pk, 10),
+                            }
+                        }
+    
+                        await this.parameterizedQuery(SQLScript);
+                    }
+                }
+
+                // remove target
                 const success = await this.deleteRegister(this.tableName, this.tablePkColumn, pk);
 
                 if (!success) {
                     return;
                 }
 
+                // just get tr and remove the element from DOM
+                $register.remove(); // remove element to not fetch data again
                 const registers = await this.listRegisters(this.tableName);
+                // const tableLength = this.dataPage.length;
 
-                this.setDataPageQueried(registers);
+                this.setDataQueried(registers);
 
                 this.clearTable();
 
@@ -359,7 +413,14 @@ class GenericTable extends TableApiEvents {
         this.setTableName(tableName);
 
         const data = await this.listRegisters(this.tableName);
-        this.setTablePkColumn(Object.keys(data[0])[0])
+        const pkName = Object.keys(data[0])[0];
+        // not working with full db
+        const excludedFks = ["docente", "area_conocimiento", "aliado", "area_aplicacion", "ods", "linea_investigacion"];
+
+        excludedFks.includes(pkName.trim()) || pkName.trim() === 'palabras_clave'
+            ? this.setTablePkColumn(Object.keys(data[0])[1])
+            : this.setTablePkColumn(Object.keys(data[0])[0]);
+
         this.setDataQueried(data);
     }
 
@@ -447,6 +508,34 @@ class GenericTable extends TableApiEvents {
             updatedData[fieldName] = $input.value;
         });
 
+        // update relations
+        // if (Object.keys(this.tableRelations).includes(this.tableName)) {
+        //     const tableRelation = this.tableRelations[this.tableName];
+        //     for (let i = 0; i < tableRelation.length; i++) {
+        //         const table = tableRelation[i];
+        //         const column = this.tableName;
+
+        //         const SQLScript = {
+        //             "consulta": `
+        //                 IF EXISTS (SELECT 1 FROM ${table} WHERE ${column} = @Codigo)
+        //                 BEGIN
+        //                     UPDATE ${table}
+        //                     SET ${column} = @newValue
+        //                     WHERE ${column} = @Codigo
+        //                 END
+        //         
+        //                 SELECT * FROM proyecto;
+        //             `,
+        //             "parametros": {
+        //                 'Codigo': parseInt(pk, 10),
+        //                 'newValue': updatedData[this.tablePkColumn],
+        //             }
+        //         };
+
+        //         await this.parameterizedQuery(SQLScript);
+        //     }
+        // }
+
         const updateResponse = await this.updateRegister(this.tableName, this.tablePkColumn, pk, updatedData);
 
         if (!updateResponse.ok) {
@@ -481,7 +570,7 @@ class GenericTable extends TableApiEvents {
         })
     }
 
-    paginatorController(tableLength = 2) {
+    paginatorController(tableLength = 3) {
         this.currentPaginatorPage = null;
 
         let dataStart = 0;
@@ -497,6 +586,14 @@ class GenericTable extends TableApiEvents {
             $paginator.remove();
             return;
         };
+
+        const handleSlicedData = () => {
+            this.dataPage = this.data.slice(dataStart, dataEnd);
+
+            this.clearTable();
+
+            this.generateRegisters();
+        }
 
         this.dataPage = this.data.slice(dataStart, dataEnd); // Default page
 
@@ -532,12 +629,25 @@ class GenericTable extends TableApiEvents {
                 }
 
                 this.currentPaginatorPage = $button;
-                this.dataPage = this.data.slice(dataStart, dataEnd);
-
-                this.clearTable();
-
-                this.generateRegisters();
+                handleSlicedData();
             })
+
+            const [ pevBtn, nextBtn ] = [
+                $paginator.querySelector(paginatorObj['prevBtnQSelector']),
+                $paginator.querySelector(paginatorObj['nextBtnQSelector'])
+            ]
+
+            this.addEvent(pevBtn, 'click', () => {
+                dataStart -= tableLength;
+                dataEnd -= tableLength;
+                handleSlicedData();
+            });
+
+            this.addEvent(nextBtn, 'click', () => {
+                dataStart += tableLength;
+                dataEnd += tableLength;
+                handleSlicedData();
+            });
 
             $paginator.querySelector(paginatorObj['pagesContainerQSelector']).appendChild($button);
         }

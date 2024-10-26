@@ -195,7 +195,7 @@ namespace MapaDeConocimiento.Services
         }
 
         // Método para crear un parámetro de consulta SQL.
-        public DbParameter CreateParameter(string name, object? value)
+        public DbParameter CrearParametro(string name, object? value)
         {
             try
             {

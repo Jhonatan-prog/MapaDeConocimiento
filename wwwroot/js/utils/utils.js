@@ -32,6 +32,10 @@ class Utils {
     isObject(object) {
       return object != null && typeof object === 'object';
     }
+
+    removeFromObj(object, element) {
+        
+    }
 }
 
 export default Utils;

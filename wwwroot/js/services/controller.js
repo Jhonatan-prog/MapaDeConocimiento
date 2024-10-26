@@ -139,6 +139,30 @@ class FetchHandler {
         }
     }
 
+    async parameterizedQueryAsync(bodyObj) {
+        try {
+            const endpoint = `${this.baseUrl}/api/${this.projectName}/any/ejecutar-consulta-parametrizada`;
+            const response = await this.fetchData(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(bodyObj)
+            });
+
+            if (!response.ok) {
+                throw Error(`Unable of fetching data, bad response -> status: ${response.status}, message: ${response.message}`)
+            }
+
+            return response;
+        } catch {
+            return {
+                status: error.status || 'Error',
+                text: error.message || 'Failed to get data',
+            };
+        }
+    }
+
     constructor_validator() {}
 }
 
