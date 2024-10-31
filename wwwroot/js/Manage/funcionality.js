@@ -1,4 +1,4 @@
-import { GenericTable } from "/js/utils/Generic/Frontend.js";
+import { GenericTable } from "/js/utils/Generic/GenericTable.js";
 
 // Forms Elements set-up
 const newRegisterForm = document.querySelector("div.form-container.create");

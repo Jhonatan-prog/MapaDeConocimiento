@@ -33,8 +33,41 @@ class Utils {
       return object != null && typeof object === 'object';
     }
 
-    removeFromObj(object, element) {
-        
+    findObjectByEquality(obj, target) {
+        try {
+            const isObj = this.isObject(obj);
+    
+            if (!isObj) throw new Error("The param inserted is not an object.");
+    
+            if (this.isEqual(obj, target)) {
+                return obj;
+            }
+    
+            for (let key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    const result = this.findObjectByEquality(obj[key], target);
+                    if (result) return result;
+                }
+            }
+
+            return null;
+        } catch (error) {
+            return {
+                "Param: ": obj,
+                "Error: ": error
+            };
+        }
+    }
+
+    filterObject(objList, field, reference) {
+        const target = [];
+        for (let i = 0; i < objList.length; i++) {
+            if (objList[i][field] === reference) {
+                target.push(objList[i]);
+            }
+        }
+
+        return target;
     }
 }
 
