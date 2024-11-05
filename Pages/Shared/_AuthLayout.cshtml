@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Mapa de conocimiento</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/MapaDeConocimiento.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <button class="go-back" b-dsiw5clz32>
+        <span>Go back</span>
+    </button>
+    <main b-dsiw5clz32>
+        <div class="form-container" b-dsiw5clz32>
+            <h3 b-dsiw5clz32>@ViewData["Subtitle"]</h3>
+            @RenderBody()
+        </div>
+        <div class="image-container" b-dsiw5clz32>
+            <img src="~/images/auth-img.jpg" alt="auth-img" b-dsiw5clz32>
+        </div>
+    </main>
+</body>
+</html>

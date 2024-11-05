@@ -66,14 +66,16 @@ class GenericFront {
         `
             <p>${message}</p>
             <hr/>
-            <button class="ok-btn" onclick="${clickHandler()}">close</button>
+            <button class="close-btn" onclick="clickHandler()">close</button>
         `
-
-        document.body.appendChild($popUpContainer);
+        const $closeBtn = $popUpContainer.querySelector('button');
+        $closeBtn.onclick = clickHandler
 
         function clickHandler() {
             $popUpContainer.remove();
         }
+
+        document.body.appendChild($popUpContainer);
 
         setTimeout(() => {
             if ($popUpContainer) {

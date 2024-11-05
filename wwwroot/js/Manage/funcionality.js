@@ -28,6 +28,7 @@ updateRegisterForm.addEventListener('click', (e) => {
 const $currentTable = document.querySelector('table#registers-table');
 const qSelectorInitializer = {
     tableNavQSelector: "div.table-pages",
+    formParentQSelector: "div.form-container",
     formQSelectorAll: "form#form",
     paginator: {
         prevBtnQSelector: "div.pag button.prev",

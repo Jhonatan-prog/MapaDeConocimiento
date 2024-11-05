@@ -59,15 +59,51 @@ class Utils {
         }
     }
 
-    filterObject(objList, field, reference) {
+    filterObject(params) {
+        if (!params['getDetails']) {
+            params['getDetails'] = false
+        }
+
         const target = [];
+        const field = params['field'];
+        const objList = params['objList'];
+
+        let objIndex = 0;
         for (let i = 0; i < objList.length; i++) {
-            if (objList[i][field] === reference) {
-                target.push(objList[i]);
+
+            if (objList[i][field] === params['reference']) {
+                target.push(params['objList'][i]);
             }
+            objIndex = i;
+        }
+
+        if (params['getDetails']) {
+            const size = Object.keys(objList).length;
+            const keys = Object.keys(objList)
+            const values = Object.values(objList)
+
+            return {
+                'target': target,
+                'index': objIndex,
+                size,
+                keys,
+                values
+            };
         }
 
         return target;
+    }
+
+    deleteObjFromObj(objList, field, reference) {
+        const details = 
+            this.filterObject({
+                objList, 
+                field, 
+                reference,
+                getDetails: true
+            });
+
+        delete objList[details['index']];
     }
 }
 

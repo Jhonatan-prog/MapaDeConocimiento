@@ -2,6 +2,8 @@ div.table-container {
     --standard-sky-color: #43A4FF;
     --standard-sky-color-hover: #3b91e0;
 
+    --cloud: #fbfbfb;
+
     position: relative;
     padding: .5em;
 
@@ -59,7 +61,7 @@ button.search-btn {
 
     letter-spacing: .07rem;
 
-    color: #FBFBFB; 
+    color: #fbfbfb; 
 
     border: none;
     border-radius: 5px;
@@ -103,15 +105,12 @@ div.table-container table {
 
     max-height: 90%;
 
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
     background-color: hsl(0, 0%, 98%);
     box-shadow: 2px 2px 8px hsla(240, 1%, 31%, 0.6);
 }
-
-/* 
-div.table-container table::after {
-    decoration bottom roundend
-} 
-*/
+  
 
 div.table-container table thead {
     color: white;
@@ -137,10 +136,17 @@ table.register-table tr {
     margin: .35em;
 
     & td {
-        padding: 0 1.2em;
         background-color: white;
         transition: background-color 350ms ease-in-out;
     }
+}
+
+table.register-table tr:last-child td:first-child {
+    border-bottom-left-radius: 12px;
+}
+
+table.register-table tr:last-child td:last-child {
+    border-bottom-right-radius: 12px;
 }
 
 table.register-table tr:hover > td {
@@ -289,7 +295,7 @@ div.pop-up {
     height: auto;
     min-width: 200px;
     max-width: 300px;
-    max-height: 100px;
+    max-height: 200px;
 
     background-color: #ebeaea;
     box-shadow: 2px 2px 8px hsla(240, 1%, 31%, 0.6);
