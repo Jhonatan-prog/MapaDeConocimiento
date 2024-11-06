@@ -94,6 +94,7 @@ class GenericTable extends TableApiEvents {
         const formList = document.querySelectorAll(this.elementQSelectorObj['formQSelectorAll']);
         const columns = Object.keys(this.dataPage[0] /* first Obj as reference */ );
         formList.forEach(($form) => {
+            const $submissionInput = $form.querySelector('input')
             const formType = $form.getAttribute("type");
             if (formType === 'update') {
                 const $pkInput = document.createElement("input");
@@ -106,7 +107,7 @@ class GenericTable extends TableApiEvents {
 
             for (let i = 0; i < columns.length; i++) {
                 const $fmLabel = document.createElement("label");
-                let fieldName = columns[i];
+                let fieldName = this.standarize(columns[i]);
                 $fmLabel.textContent = fieldName;
                 $fmLabel.setAttribute("b-ga0mknigks", "")
                 $fmLabel.setAttribute("for", `${fieldName}`)
@@ -116,8 +117,8 @@ class GenericTable extends TableApiEvents {
                 $fmInput.setAttribute("id", `${fieldName}`)
                 $fmInput.setAttribute("name", `${fieldName}`)
 
-                $form.appendChild($fmLabel);
-                $form.appendChild($fmInput);
+                $form.insertBefore($fmLabel, $submissionInput);
+                $form.insertBefore($fmInput, $submissionInput);
             }
         })
     }
@@ -539,6 +540,9 @@ class GenericTable extends TableApiEvents {
                 if (!inputList[i].getAttribute('id')) continue;
 
                 const label = inputList[i].previousElementSibling;
+
+                if (!label) return
+                
                 $form.removeChild(label);
                 $form.removeChild(inputList[i]);
             }

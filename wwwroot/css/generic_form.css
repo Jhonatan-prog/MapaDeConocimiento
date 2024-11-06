@@ -1,6 +1,11 @@
 div.form-container {
-    --standard-sky-color: #43A4FF;
-    --standard-sky-color-hover: #3b91e0;
+    --standard-lower-sky-color: #6e5dad;
+    --standard-sky-color: #624bb3;
+    --standard-sky-color-hover: #40258e;
+    --subtle-grey: #9b9b9b;
+
+    --cloud-primary-color: #fbfbfb;
+    --cloud-secundary-color: #e7e7e7;
 
     position: absolute;
     top: 50%;
@@ -44,16 +49,17 @@ div.form-container div.generic-form-tag {
     width: 350px;
     padding-bottom: 1em;
 
-    border-radius: var(--standard-b-radius);
+    border-bottom-left-radius: var(--standard-b-radius);
+    border-bottom-right-radius: var(--standard-b-radius);
+
     background-color: #eeeeee;
-    box-shadow: 3px 3px 8px rgb(36, 35, 35);
+    box-shadow: 3px 3px 8px hsl(0, 1%, 14%);
 }
 
 div.form-container div.generic-form-tag h3 {
     padding: .2em;
 
-    color: #FBFBFB;
-    border-radius: var(--standard-b-radius) var(--standard-b-radius) 0 0;
+    color: var(--cloud-primary-color);
 
     background-color: var(--standard-sky-color);
     border-bottom: 2px solid #6b6b6b;
@@ -72,10 +78,25 @@ div.form-container div.generic-form-tag input:focus {
     border-color:  var(--standard-sky-color);
 }
 
+input#post-btn,
+input#update-btn {
+    color: var(--cloud-primary-color);
+
+    margin-top: 1em;
+    background-color: var(--standard-lower-sky-color);
+    transition: all 200ms ease-in-out;
+}
+
+input#post-btn:hover,
+input#update-btn:hover {
+    color: var(--cloud-secundary-color);
+    background-color: var(--standard-sky-color);
+}
+
 button.create-btn {
     margin-top: 1.2em;
 
-    color: #FBFBFB;
+    color: var(--cloud-primary-color);
     letter-spacing: .07rem;
     
     background-color:  var(--standard-sky-color);

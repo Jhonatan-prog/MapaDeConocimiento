@@ -11,8 +11,9 @@ html, body {
 main {
     --standard-sky-color: #624bb3;
     --standard-sky-color-hover: #40258e;
-    --cloud-text-color: #fbfbfb;
     --subtle-grey: #9b9b9b;
+
+    --cloud-text-color: #fbfbfb;
 
     position: relative;
 

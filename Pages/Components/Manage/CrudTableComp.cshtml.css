@@ -1,8 +1,9 @@
 div.table-container {
-    --standard-sky-color: #43A4FF;
-    --standard-sky-color-hover: #3b91e0;
+    --standard-sky-color: #624bb3;
+    --standard-sky-color-hover: #40258e;
+    --subtle-grey: #9b9b9b;
 
-    --cloud: #fbfbfb;
+    --cloud-primary-color: #fbfbfb;
 
     position: relative;
     padding: .5em;
@@ -33,14 +34,14 @@ div.query-input-container input { /* remove */
     
     border: 2px solid #31313186;
     border-radius: 4px 6px 6px 4px;
-    background-color: hsl(0, 0%, 98%);
+    background-color: var(--cloud-primary-color);
 
     transition: border-color 200ms ease-in-out;
 }
 
 div.query-input-container input:hover, 
 div.query-input-container input:focus {
-    border-color: #43A4FF;
+    border-color: var(--standard-sky-color);
 }
 
 div.query-input-container input::placeholder {
@@ -54,14 +55,14 @@ div.query-button-container {
     justify-content: space-between;
 }
 
-div.query-button-container button, 
+div.query-button-container button,
 button.search-btn {
     margin: 0;
     width: 80px;
 
     letter-spacing: .07rem;
 
-    color: #fbfbfb; 
+    color: var(--cloud-primary-color);
 
     border: none;
     border-radius: 5px;
@@ -85,12 +86,13 @@ button.list-btn:hover {
     background-color: #707070;
 }
 
-button.search-btn:hover, input.create-btn:hover {
+button.search-btn:hover, 
+button.create-btn:hover {
     background-color: var(--standard-sky-color-hover);
 }
 
 th.field {
-    color: #FBFBFB;
+    color: var(--cloud-primary-color);
 }
 
 div.table-container {
@@ -107,15 +109,15 @@ div.table-container table {
 
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
-    background-color: hsl(0, 0%, 98%);
+    background-color: var(--cloud-primary-color);
     box-shadow: 2px 2px 8px hsla(240, 1%, 31%, 0.6);
 }
   
 
 div.table-container table thead {
-    color: white;
+    color: var(--cloud-primary-color);
     background-color: var(--standard-sky-color);
-    box-shadow: 2px 2px 5px hsla(209, 73%, 55%, .6);
+    box-shadow: 2px 2px 5px hsla(236, 78%, 66%, 0.6);
 
     & tr {
         height: 50px;
@@ -136,7 +138,7 @@ table.register-table tr {
     margin: .35em;
 
     & td {
-        background-color: white;
+        background-color: var(--cloud-primary-color);
         transition: background-color 350ms ease-in-out;
     }
 }
@@ -150,7 +152,7 @@ table.register-table tr:last-child td:last-child {
 }
 
 table.register-table tr:hover > td {
-    background-color: rgb(209, 209, 209);
+    background-color: #d1d1d1;
 }
 
 tbody td div.updt_del_buttons {
@@ -225,7 +227,7 @@ div.pag div.pages-container > button {
 
     justify-content: center;
 
-    color: #FBFBFB;
+    color: var(--cloud-primary-color);
     border: none;
     border-radius: 3px;
     background-color: #31313186;
@@ -233,7 +235,7 @@ div.pag div.pages-container > button {
 }
 
 div.pag div.pages-container > button:hover {
-    background-color: #43A4FF;
+    background-color: var(--standard-sky-color);
 }
 
 div.pag div.pages-container > button:active {
@@ -241,7 +243,7 @@ div.pag div.pages-container > button:active {
 }
 
 div.pag div.pages-container button.focus {
-    background-color: #43A4FF;
+    background-color: var(--standard-sky-color);
 }
 
 div.pages-container > button h4 {
@@ -250,7 +252,7 @@ div.pages-container > button h4 {
 
 
 button#focus {
-    background-color: #43A4FF;
+    background-color: var(--standard-sky-color);
 }
 
 div.table-pages {
@@ -305,11 +307,11 @@ div.pop-up {
         position: relative;
         float: right;
 
-        color: white;
+        color: var(--cloud-primary-color);
 
         border: none;
         border-radius: 5px;
-        background-color: #43A4FF;
+        background-color: var(--standard-sky-color);
         transition: all 300ms ease-in;
     }
 }
