@@ -62,15 +62,31 @@ form#form > input::placeholder {
 }
 
 form#form > input:focus {
-    border: 1px solid var(--subtle-grey);
+    border: 2px solid var(--standard-sky-color);
 }
 
-form#form input.login-btn {
+form#form div.checkbox-container {
+    display: flex;
+    align-items: center;
+
+    color: var(--subtle-grey);
+    
+    & input {
+        margin-right: .35em;
+    }
+    
+    & h6 {
+        margin: 0;
+    }
+}
+
+form#form input.login-btn,
+form#form input.signup-btn {
     margin-top: 1.6em;
     padding: .35em;
 
     color: var(--cloud-text-color);
-    font-weight: 500;
+    font-weight: 700;
 
     border: none;
     border-radius: 6px;
@@ -79,22 +95,8 @@ form#form input.login-btn {
     transition: background-color 300ms ease-in-out;
 }
 
-form#form div.checkbox-container {
-    display: flex;
-    align-items: center;
-
-    color: var(--subtle-grey);
-
-    & input {
-        margin-right: .35em;
-    }
-
-    & h6 {
-        margin: 0;
-    }
-}
-
-form#form input.login-btn:hover {
+form#form input.login-btn:hover,
+form#form input.signup-btn:hover {
     background-color: var(--standard-sky-color-hover);
 }
 
@@ -140,4 +142,8 @@ button.go-back {
         color: #595959;
         text-shadow: 1px 1px 2px #919191;
     }
+}
+
+form#form input.not-valid {
+    border: 2px solid hsla(0, 89%, 39%, 0.603);
 }

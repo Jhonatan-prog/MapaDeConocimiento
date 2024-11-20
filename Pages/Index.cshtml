@@ -1,1 +1,23 @@
-﻿@page
+﻿@page "/index"
+@using System.Security.Claims
+
+@{
+    bool isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
+}
+
+@if (@isAuthenticated)
+{
+    <p>You are authenticated!</p>
+
+    @foreach (var claim in User?.Claims!)
+    {
+        @if (claim.Type == ClaimTypes.Role)
+        {
+            <p>Role: @claim.Value</p>
+        }
+    }
+}
+else
+{
+    <p>You are not authenticated. <a href="http://localhost:5172/login">Login</a></p>
+}

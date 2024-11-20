@@ -30,10 +30,12 @@ namespace MapaDeConocimiento.Controllers
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        [AllowAnonymous] // Permite el acceso anónimo a este método.
         [HttpGet] // Define una ruta HTTP GET para este método.
         public IActionResult Listar(string projectName, string tableName) // Método que lista todas las filas de una tabla dada.
         {
+            var authorizationHeader = Request.Headers["Authorization"].ToString();
+            Console.WriteLine("Authorization Header: " + authorizationHeader);
+
             if (string.IsNullOrWhiteSpace(tableName)) // Verifica si el nombre de la tabla está vacío o solo contiene espacios en blanco.
                 return BadRequest("El nombre de la tabla no puede estar vacío."); // Retorna una respuesta de error si la tabla está vacía.
 
@@ -61,7 +63,6 @@ namespace MapaDeConocimiento.Controllers
             }
         }
 
-        [AllowAnonymous] // Permite el acceso anónimo a este método.
         [HttpGet("{keyName}/{value}")] // Define una ruta HTTP GET con parámetros adicionales.
         public IActionResult GetByKey(string projectName, string tableName, string keyName, string value) // Método que obtiene una fila específica basada en una clave.
         {
@@ -247,7 +248,6 @@ namespace MapaDeConocimiento.Controllers
             }
         }
 
-        [AllowAnonymous] // Permite el acceso anónimo a este método.
         [HttpPost] // Define una ruta HTTP POST para este método.
         public IActionResult Crear(string projectName, string tableName, [FromBody] Dictionary<string, object?> entidadData)  // Crea una nueva fila en la tabla especificada.
         {
@@ -299,7 +299,6 @@ namespace MapaDeConocimiento.Controllers
             }
         }
 
-        [AllowAnonymous] // Permite el acceso anónimo a este método.
         [HttpPut("{keyName}/{keyValue}")] // Define una ruta HTTP PUT con parámetros adicionales.
         public IActionResult Actualizar(string projectName, string tableName, string keyName, string keyValue, [FromBody] Dictionary<string, object?> entidadData) // Actualiza una fila en la tabla basada en una clave.
         {
@@ -357,7 +356,6 @@ namespace MapaDeConocimiento.Controllers
             return "@"; // Para SQL Server y LocalDB, el prefijo es "@".
         }
 
-        [AllowAnonymous] // Permite el acceso anónimo a este método.
         [HttpDelete("{keyName}/{keyValue}")] // Define una ruta HTTP DELETE con parámetros adicionales.
         public IActionResult Eliminar(string projectName, string tableName, string keyName, string keyValue) // Elimina una fila de la tabla basada en una clave.
         {
@@ -382,14 +380,13 @@ namespace MapaDeConocimiento.Controllers
             }
         }
 
-        [AllowAnonymous] // Permite el acceso anónimo a este método.
         [HttpGet("/")] // Define una ruta HTTP GET en la raíz de la API.
         public IActionResult GetRoot() // Método que retorna un mensaje indicando que la API está en funcionamiento.
         {
             return Ok("API is running"); // Retorna un mensaje indicando que la API está en funcionamiento.
         }
-
-        [AllowAnonymous] // Permite el acceso anónimo a este método.
+    
+        [AllowAnonymous]
         [HttpPost("verificar-contrasena")] // Define una ruta HTTP POST para verificar contraseñas.
         public IActionResult VerificarContrasena(string projectName, string tableName, [FromBody] Dictionary<string, string> datos) // Verifica si la contraseña proporcionada coincide con la almacenada.
         {
@@ -448,7 +445,6 @@ namespace MapaDeConocimiento.Controllers
             return new SqlParameter(name, value ?? DBNull.Value); // Crea un parámetro para SQL Server y LocalDB.
         }
 
-        [AllowAnonymous]
         [HttpPost("ejecutar-consulta-parametrizada")]
         public IActionResult EjecutarConsultaParametrizada([FromBody] JsonElement cuerpoSolicitud)
         {
@@ -517,7 +513,6 @@ namespace MapaDeConocimiento.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpPost("consulta-compleja")]
         public IActionResult ConsultaCompleja(string projectName, [FromBody] JsonElement criterios)
         {
@@ -680,7 +675,6 @@ namespace MapaDeConocimiento.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpPost("ejecutar-procedimiento/{procedureName}")]
         public IActionResult EjecutarProcedimientoAlmacenado(string procedureName, [FromBody] JsonElement body)
         {

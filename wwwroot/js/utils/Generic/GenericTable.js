@@ -1,44 +1,8 @@
-import { GenericFront } from "./Frontend.js";
-
-class TableApiEvents extends GenericFront {
-    constructor(backendAPIUrl) {
-        super(backendAPIUrl);
-    }
-
-    async listRegisters(tableName) {
-        const data = await this.APIConsumer.listDataAsync(tableName);
-        return data;
-    }
-
-    async getRegisterByKey(tableName, pkColum, pk) {
-        const data = await this.APIConsumer.getDataByKeyAsync(tableName, pkColum, pk);
-        return data;
-    }
-
-    async postRegister(tableName, dataToPost) {
-        const data = await this.APIConsumer.postDataAsync(tableName, dataToPost);
-        return data;
-    }
-
-    async updateRegister(tableName, pkColum, pk, dataToUpdate) {
-        const data = await this.APIConsumer.updateDataAsync(tableName, pkColum, pk, dataToUpdate);
-        return data;
-    }
-
-    async deleteRegister(tableName, pkColum, pk) {
-        const data = await this.APIConsumer.deleteDataAsync(tableName, pkColum, pk);
-        return data;
-    }
-
-    async parameterizedQuery(bodyObj) {
-        const data = await this.APIConsumer.parameterizedQueryAsync(bodyObj);
-        return data;
-    }
-}
+import { TableApiEvents } from "./Frontend.js";
 
 class GenericTable extends TableApiEvents {
-    constructor(elementQSelectorObj, backendAPIUrl, table = null, tableName = "", tablePkColumn = "") {
-        super(backendAPIUrl);
+    constructor(backendAPIUrl, elementQSelectorObj, table = null, tableName = "", tablePkColumn = "") {
+        super(backendAPIUrl, elementQSelectorObj);
 
         this.postRegister = this.postRegister.bind(this);
         this.updateRegister = this.updateRegister.bind(this);
@@ -48,7 +12,7 @@ class GenericTable extends TableApiEvents {
         this.table = table;
         this.tableName = tableName;
         this.tablePkColumn = tablePkColumn;
-        this.elementQSelectorObj = elementQSelectorObj; // obj with all the QSelectors of each element (reference to each element in DOM)
+        this.fields = []
         this.data = {}
         this.dataPage = {}
 
@@ -92,8 +56,9 @@ class GenericTable extends TableApiEvents {
 
     generateForm() {
         const formList = document.querySelectorAll(this.elementQSelectorObj['formQSelectorAll']);
-        const columns = Object.keys(this.dataPage[0] /* first Obj as reference */ );
-        formList.forEach(($form) => {
+        const columns = this.fields;
+
+        formList.forEach(async ($form) => {
             const $submissionInput = $form.querySelector('input')
             const formType = $form.getAttribute("type");
             if (formType === 'update') {
@@ -119,6 +84,74 @@ class GenericTable extends TableApiEvents {
 
                 $form.insertBefore($fmLabel, $submissionInput);
                 $form.insertBefore($fmInput, $submissionInput);
+            }
+
+            if (this.tableName.toLowerCase().trim() === "usuario") {
+                this.globalUserRole = [];
+                this.removedRole = [];
+
+                const passwordRegex = /contrasena|password|pwd|pass|clave/i;
+                const passwordInput = Array.from(document.querySelectorAll('form[type="post"] input')).find(input =>
+                    passwordRegex.test(input.name)
+                );
+                passwordInput.setAttribute("type", "password")
+
+                const $roleManagerContainer = document.createElement("div");
+                $roleManagerContainer.className = "role-manager-container"
+
+                const $selectLabel = document.createElement("label")
+                $selectLabel.setAttribute("for", "role")
+                $selectLabel.textContent = "User role"
+
+                const $roleSelect = document.createElement("select")
+                $roleSelect.setAttribute("name", "role")
+                $roleSelect.setAttribute("id", "role")
+
+                const dbRole = await this.listRegisters("rol");
+
+                for (let i = 0; i < Object.keys(dbRole).length; i++) {
+                    const $option = document.createElement('option')
+                    $option.innerHTML = dbRole[i]["nombre"]
+
+                    $roleSelect.appendChild($option)
+                }
+
+                const $userRoleContainer = document.createElement('div');
+                $userRoleContainer.className = "role-container"
+                $userRoleContainer.style.width = "100%"
+                $userRoleContainer.style.height = "90px"
+
+                const $addRolBtn = document.createElement('button');
+                $addRolBtn.setAttribute("type", "button")
+                $addRolBtn.textContent = "Add"
+
+                this.addEvent($addRolBtn, 'click', () => {
+                    const rolSelectedName = $roleSelect.value
+
+                    if (this.globalUserRole.includes(rolSelectedName)) return
+                    this.globalUserRole.push(rolSelectedName)
+
+                    const $roleElement = document.createElement("div")
+                    $roleElement.textContent = rolSelectedName
+
+                    // remove roleElement
+                    this.addEvent($roleElement, 'click', (e) => {
+                        const position = this.globalUserRole.indexOf(e.target.textContent)
+                        this.globalUserRole.splice(position, 1);
+                        console.log(this.removedRole)
+
+                        $roleElement.remove()
+                    })
+
+                    $userRoleContainer.appendChild($roleElement)
+                })
+
+                $roleManagerContainer.appendChild($selectLabel)
+                $roleManagerContainer.appendChild($roleSelect)
+                $roleManagerContainer.appendChild($userRoleContainer)
+                $roleManagerContainer.appendChild($addRolBtn)
+
+                $form.insertBefore($roleManagerContainer, $submissionInput)
             }
         })
     }
@@ -154,19 +187,18 @@ class GenericTable extends TableApiEvents {
 
         for (const index in registerNodeList) { // 'n' iterations
             let register = registerNodeList[index];
-            this.generateRegister(register);
+            this.generateRegister(register, index);
         }
-
-        this.setGlobalListeners();
     }
 
-    generateRegister(register) { // 'registerObj' (register = obj -> {...}) each iteration is different
+    generateRegister(register, registerCounter="") { // 'registerObj' (register = obj -> {...}) each iteration is different
         const $table = this.table;
         const $tbody = $table.children[1];
 
         const $row = document.createElement("tr");
         $row.setAttribute("b-ga0mknigks", "")
         $row.setAttribute("data-pk-value", register[this.tablePkColumn]);
+        $row.setAttribute("count", registerCounter)
 
         for (const fieldName in register) {
             const $field = document.createElement('td');
@@ -199,6 +231,13 @@ class GenericTable extends TableApiEvents {
 
         $row.appendChild($btnContainer);
         $tbody.appendChild($row);
+
+        const $updateBtn = $btnContainer.querySelector('button#update-btn');
+        const $deleteBtn = $btnContainer.querySelector('button#delete-btn');
+
+        this.setActionListeners($updateBtn, $deleteBtn);
+
+        this.utils.addCustomAttributeIfMissing("div.table-container");
     }
 
     async tableSetUp(DOMTable = null) {
@@ -240,8 +279,8 @@ class GenericTable extends TableApiEvents {
             const pk = document.querySelector(gobalListenerObj['searchInputQselector']).value;
 
             const query = 
-                this.utils.filterObject(this.data, this.tablePkColumn, {
-                    objList: this.dataPage, 
+                this.utils.filterObject({
+                    objList: this.data, 
                     field: this.tablePkColumn, 
                     reference: !isNaN(pk) ? parseInt(pk, 10) : pk
                 });
@@ -262,113 +301,136 @@ class GenericTable extends TableApiEvents {
 
             if (Object.keys(query).length === 1) {
                 this.generateRegister(query[0]);
-                this.setGlobalListeners(); // setting up event listeners multiple times
+                this.utils.addCustomAttributeIfMissing("div.table-container");
                 return void (0);
             }
 
             this.generateRegisters();
         });
+    }
 
-        const updateBtns = document.querySelectorAll(gobalListenerObj['updateBtnQSelectorAll']);
-        updateBtns.forEach($updateBttn => {
-            this.addEvent($updateBttn, 'click', async (e) => {
-                const $register = e.target.closest('tr');
-                const pkValue = $register.getAttribute('data-pk-value')
+    setActionListeners($updateBtn = null, $deleteBtn = null) {
+        const gobalListenerObj = this.elementQSelectorObj['gobalListeners'];
 
-                const pk = !isNaN(pkValue)
-                    ? parseInt(pkValue, 10) 
-                    : pkValue;
+        this.addEvent($updateBtn, 'click', async (e) => {
+            const $register = e.target.closest('tr');
+            const pkValue = $register.getAttribute('data-pk-value')
+            const pk = !isNaN(pkValue)
+                ? parseInt(pkValue, 10) 
+                : pkValue;
+    
+            const $hiddenInput = document.querySelector('input.hidden-pk');
+            $hiddenInput.setAttribute("pk-value", pk)
 
+            const currentRegister =
+                this.utils.filterObject({
+                    objList: this.dataPage, 
+                    field: this.tablePkColumn, 
+                    reference: pk
+                })[0];
+            const columns = Object.keys(currentRegister);
 
-                const $hiddenInput = document.querySelector('input.hidden-pk');
-                $hiddenInput.setAttribute("pk-value", pk)
+            const $updateForm = document.querySelector('[type="update"]'); // harcoded -> type="update"
+            let count = 0;
+            $updateForm.querySelectorAll('input')
+                .forEach(($input) => {
+                    const ignore = ['__RequestVerificationToken', null];
+                    if (
+                        ignore.includes($input.getAttribute('name')) 
+                        || $input.getAttribute('type') === 'submit'
+                    ) return;
+                    $input.value = currentRegister[columns[count]]
+                    count += 1
+                })
 
-                const currentRegister =
-                    this.utils.filterObject({
-                        objList: this.dataPage, 
-                        field: this.tablePkColumn, 
-                        reference: pk
-                    })[0];
-                const columns = Object.keys(currentRegister);
+            if (this.tableName === "usuario") {
+                const userRole = await this.getUserRole(pk)
+                
+                this.globalUserRole = userRole;
+                this.rolesToUpdate = [];
+                const $userRoleContainer = document.querySelector('form[type="update"] div.role-container');
 
-                const $updateForm = document.querySelector('[type="update"]'); // harcoded -> type="update"
-                let count = 0;
-                $updateForm.querySelectorAll('input')
-                    .forEach(($input) => {
-                        const ignore = ['__RequestVerificationToken', null];
-                        if (
-                            ignore.includes($input.getAttribute('name')) 
-                            || $input.getAttribute('type') === 'submit'
-                        ) return;
+                [...$userRoleContainer.children].forEach($divElement => {
+                    if ($divElement) $divElement.remove();
+                })
 
-                        $input.value = currentRegister[columns[count]]
+                if (!this.globalUserRole) return
 
-                        count += 1
+                for (let i = 0; i < this.globalUserRole.length; i++) {
+                    const $roleElement = document.createElement("div")
+                    $roleElement.textContent = this.globalUserRole[i]
+    
+                    // remove roleElement
+                    this.addEvent($roleElement, 'click', (e) => {
+                        const position = this.globalUserRole.indexOf(e.target.textContent)
+                        this.rolesToUpdate = [...this.rolesToUpdate, this.globalUserRole.splice(position, 1)[0]];
+                        console.log(this.globalUserRole, this.rolesToUpdate)
+    
+                        $roleElement.remove();
                     })
-            });
-            this.addEvent($updateBttn, 'click', gobalListenerObj['updateClickEvent']);
+
+                    $userRoleContainer.appendChild($roleElement)
+                }
+            }
+
         });
 
-        const deleteBtns = document.querySelectorAll(gobalListenerObj['deleteBtnQSelectorAll']);
-        deleteBtns.forEach($deleteBttn => {
-            this.addEvent($deleteBttn, 'click', async (e) => {
-                const $register = e.target.closest('tr');
-                const pkValue = $register.getAttribute('data-pk-value');
-                const pk = !isNaN(pkValue)
-                    ? parseInt(pkValue, 10) 
-                    : pkValue;
+        this.addEvent($updateBtn, 'click', gobalListenerObj['updateClickEvent']);
 
-                // remove relations
-                if (Object.keys(this.tableRelations).includes(this.tableName)) {
-                    const tableRelation = this.tableRelations[this.tableName];
-                    for (let i = 0; i < tableRelation.length; i++) {
-                        const table = tableRelation[i];
-                        const column = this.tableName;
-    
-                        const SQLScript = {
-                            "consulta": `
-                                IF EXISTS (SELECT 1 FROM ${table} WHERE ${column} = @Codigo)
-                                BEGIN
-                                    DELETE FROM ${table} 
-                                    WHERE ${column} = @Codigo 
-                                END
-    
-                                SELECT * FROM proyecto;
-                            `,
-                            "parametros": {
-                                'Codigo': pk
-                            }
+        this.addEvent($deleteBtn, 'click', async (e) => {
+            const $register = e.target.closest('tr');
+            const pkValue = $register.getAttribute('data-pk-value');
+            const pk = !isNaN(pkValue)
+                ? parseInt(pkValue, 10) 
+                : pkValue;
+
+            // remove relations
+            if (Object.keys(this.tableRelations).includes(this.tableName)) {
+                const tableRelation = this.tableRelations[this.tableName];
+                for (let i = 0; i < tableRelation.length; i++) {
+                    const table = tableRelation[i];
+                    const column = this.tableName;
+
+                    const SQLScript = {
+                        "consulta": `
+                            IF EXISTS (SELECT 1 FROM ${table} WHERE ${column} = @Codigo)
+                            BEGIN
+                                DELETE FROM ${table} 
+                                WHERE ${column} = @Codigo 
+                            END
+
+                            SELECT * FROM proyecto;
+                        `,
+                        "parametros": {
+                            'Codigo': pk
                         }
-    
-                        await this.parameterizedQuery(SQLScript);
                     }
+
+                    await this.parameterizedQuery(SQLScript);
                 }
+            }
+            // remove target
+            const ok = await this.deleteRegister(this.tableName, this.tablePkColumn, pk);
+            if (!ok) {
+                return;
+            }
+            
+            const deleteObjParams = {
+                field: this.tablePkColumn, 
+                reference: pk,
+                getDetails: true
+            }
+            const objRegisterFD = this.utils.filterObject({  objList: this.data, ...deleteObjParams });
+            const objRegisterFDP = this.utils.filterObject({  objList: this.dataPage, ...deleteObjParams });
 
-                // remove target
-                const ok = await this.deleteRegister(this.tableName, this.tablePkColumn, pk);
+            $register.remove();
 
-                if (!ok) {
-                    return;
-                }
-                
-                const deleteObjParams = {
-                    field: this.tablePkColumn, 
-                    reference: pk,
-                    getDetails: true
-                }
+            delete this.data[objRegisterFD['index']];
+            delete this.dataPage[objRegisterFDP['index']];
 
-                const objRegisterFD = this.utils.filterObject({  objList: this.data, ...deleteObjParams });
-                const objRegisterFDP = this.utils.filterObject({  objList: this.dataPage, ...deleteObjParams });
-
-                $register.remove();
-
-                delete this.data[objRegisterFD['index']];
-                delete this.dataPage[objRegisterFDP['index']];
-
-                if (Object.keys(this.dataPage).length === 0) {
-                    this.paginatorController();
-                }
-            });
+            if (Object.keys(this.dataPage).length === 0) {
+                this.paginatorController();
+            }
         });
     }
 
@@ -378,6 +440,10 @@ class GenericTable extends TableApiEvents {
 
     setTablePkColumn(pkColumType) {
         this.tablePkColumn = pkColumType
+    }
+
+    setTableFields(fields) {
+        this.fields = fields
     }
 
     setDataQueried(newData) {
@@ -393,7 +459,9 @@ class GenericTable extends TableApiEvents {
         this.setTableName(tableName);
 
         const data = await this.listRegisters(this.tableName);
-        const pkName = Object.keys(data[0])[0];
+        this.setTableFields(Object.keys(data[0]))
+        const pkName = this.fields[0];
+
         // not working with full db
         const excludedFks = ["docente", "area_conocimiento", "aliado", "area_aplicacion", "ods", "linea_investigacion"];
 
@@ -432,10 +500,20 @@ class GenericTable extends TableApiEvents {
     formSubmission() {
         const formList = document.querySelectorAll(this.elementQSelectorObj['formQSelectorAll']);
         formList.forEach($form => {
+            const $formParent = $form.parentNode.parentNode;
+    
             const type = $form.getAttribute("type").trim().toLowerCase(); // make more generic (change type)
 
             const handler = type === "post" ? this.handlePostSubmit :  this.handlePutSubmit;
             this.addEvent($form, 'submit', handler.bind(this));
+            this.addEvent($form, 'submit', () => {
+                if($formParent.classList.contains('js-display-update_box')) {
+                    $formParent.classList.remove('js-display-update_box')
+                    return
+                }
+
+                $formParent.classList.remove('js-display-create_box')
+            });
         })
     }
 
@@ -445,10 +523,12 @@ class GenericTable extends TableApiEvents {
         const inputNodeList = document.querySelectorAll('[type="post"]' + " " + "input");
         const register = {}
 
+        let index = 0;
         inputNodeList.forEach($input => {
             const fieldName = $input.getAttribute('name');
             if (fieldName === '__RequestVerificationToken'|| fieldName === null) return;
-            register[fieldName] = $input.value;
+            register[this.fields[index]] = $input.value;
+            index++
         });
 
         const postResponse = await this.postRegister(this.tableName, register);
@@ -459,15 +539,54 @@ class GenericTable extends TableApiEvents {
             return
         }
 
-        const tableSize = this.data.length;
-        this.data[tableSize] = register
+        if (this.tableName === "usuario") {
+            for (let i = 0; i < this.globalUserRole.length; i++) {
+                let role = this.globalUserRole[i];
 
-        const message = `Register added successfully into ${this.standarize(this.tableName)}.`
+                const SQLScript = {
+                    "consulta": `
+                        DECLARE @RoleId INT;
+
+                        SELECT @RoleId = id
+                        FROM rol
+                        WHERE nombre = @Role
+
+                        IF EXISTS (SELECT 1 FROM rol WHERE nombre = @Role)
+                        AND 
+                        NOT EXISTS (SELECT 1 FROM rol_usuario WHERE fkemail = @Email AND fkidrol = @RoleId)
+                        BEGIN
+                            INSERT INTO rol_usuario(fkemail, fkidrol) VALUES (@Email, @RoleId)
+                        END
+
+                        SELECT * FROM proyecto;
+                    `,
+                    "parametros": {
+                        'Email': register["email"],
+                        'Role': role
+                    }
+                }
+
+                await this.parameterizedQuery(SQLScript);
+            }
+        }
+
+        const tableSize = this.data.length;
+        const newRegister = Object.keys(register).includes("contrasena")
+            ? (await this.getRegisterByKey(this.tableName, this.tablePkColumn, register[this.tablePkColumn]))[0]
+            : register
+
+        this.data[tableSize] = newRegister
+
+        const message = `Register added successfully into ${this.standarize(this.tableName).toLowerCase()}.`
         this.popUp(message);
 
-        if (Object.keys(this.dataPage).length < this.paginatorMaxLength) {
-            this.dataPage = { ...this.dataPage, register };
-            this.generateRegister(register);
+        const currentPageSize = this.dataPage.length;
+        if (currentPageSize < this.paginatorMaxLength) {
+            this.dataPage = {
+                ...this.dataPage, 
+                [currentPageSize]: newRegister 
+            };
+            this.generateRegister(newRegister);
 
             return void 0;
         }
@@ -484,20 +603,32 @@ class GenericTable extends TableApiEvents {
         const $hiddenInput = document.querySelector('input.hidden-pk');
         const pk = $hiddenInput.getAttribute('pk-value');
 
+        let index = 0;
         inputNodeList.forEach($input => {
             const fieldName = $input.getAttribute('name');
             if (fieldName === '__RequestVerificationToken'|| fieldName === null) {
                 return
             }
-            updatedData[fieldName] = $input.value;
+            updatedData[this.fields[index]] = $input.value;
+            index++
         });
 
         const updateResponse = await this.updateRegister(this.tableName, this.tablePkColumn, pk, updatedData);
 
         if (!updateResponse.ok) {
-            const message = `An error ocurred while updating register in ${this.tableName}.`
+            const message = `
+                An error ocurred while updating register in ${this.standarize(this.tableName).toLowerCase()}.
+            `
             this.popUp(message);
             return
+        }
+
+        if (this.tableName = "usuario") {
+            if (this.rolesToUpdate > this.globalUserRole.length) {
+
+            } else if ((this.rolesToUpdate < this.globalUserRole.length)) {
+                
+            }
         }
 
         const objParams = {
@@ -510,23 +641,14 @@ class GenericTable extends TableApiEvents {
         const objRegisterFD = this.utils.filterObject({  objList: this.data, ...objParams });
         const objRegisterFDP = this.utils.filterObject({  objList: this.dataPage, ...objParams });
 
-        this.data[objRegisterFD['index']] = updatedData;
-        this.dataPage[objRegisterFDP['index']] = updatedData;
+        this.data[objRegisterFD['index'] - 1] = updatedData;
+        this.dataPage[objRegisterFDP['index'] - 1] = updatedData
+
+        console.log(this.globalUserRole)
 
         this.clearTable();
 
         this.generateRegisters();
-
-        const formParentQSelector = this.elementQSelectorObj['formParentQSelector'];
-        if (formParentQSelector) {
-            const $formParent = document.querySelector(formParentQSelector + " " + "js-display-update_box");
-            console.log($formParent)
-            // $formNodes.forEach($form => {
-            //     console.log($form)
-            //     $form.classList.remove('js-display-update_box')
-            //     console.log($form)
-            // })
-        }
 
         const message = `Register updated successfully in ${this.standarize(this.tableName)}.`
         this.popUp(message);
@@ -535,16 +657,13 @@ class GenericTable extends TableApiEvents {
     clearForm() {
         const formList = document.querySelectorAll(this.elementQSelectorObj['formQSelectorAll']);
         formList.forEach($form => {
-            const inputList = $form.querySelectorAll("input");
-            for (let i = 0; i < inputList.length; i++) {
-                if (!inputList[i].getAttribute('id')) continue;
+            const childrenList = [...$form.children];
+            for (let i = 0; i < childrenList.length; i++) {
+                const child = childrenList[i]
 
-                const label = inputList[i].previousElementSibling;
+                if (child.getAttribute('type') === 'submit') return
 
-                if (!label) return
-                
-                $form.removeChild(label);
-                $form.removeChild(inputList[i]);
+                $form.removeChild(child);
             }
         })
     }
@@ -644,7 +763,7 @@ class GenericTable extends TableApiEvents {
             .querySelectorAll(
                 paginatorObj['pagesContainerQSelector'].trim() + " " + "button"
             )
-
+        
         $divBtnContainer.forEach($button => {
             $button.remove();
         });

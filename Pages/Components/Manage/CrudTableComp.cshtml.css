@@ -52,12 +52,15 @@ div.query-button-container {
     width: 175px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
+
+    & button {
+        margin: 0 .5em;
+    }
 }
 
 div.query-button-container button,
 button.search-btn {
-    margin: 0;
     width: 80px;
 
     letter-spacing: .07rem;
@@ -283,39 +286,4 @@ div.table-pages > button.table-c:hover {
 
 div.table-pages button:last-child {
     border-right: solid 2px #acacac;
-}
-
-div.pop-up {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-
-    margin-top: .7em;
-    padding: .3em;
-    width: auto;
-    height: auto;
-    min-width: 200px;
-    max-width: 300px;
-    max-height: 200px;
-
-    background-color: #ebeaea;
-    box-shadow: 2px 2px 8px hsla(240, 1%, 31%, 0.6);
-    border-radius: 5px;
-
-    & button {
-        position: relative;
-        float: right;
-
-        color: var(--cloud-primary-color);
-
-        border: none;
-        border-radius: 5px;
-        background-color: var(--standard-sky-color);
-        transition: all 300ms ease-in;
-    }
-}
-
-div.pop-up hr {
-    margin: 0;
 }

@@ -66,15 +66,16 @@ class Utils {
 
         const target = [];
         const field = params['field'];
-        const objList = params['objList'];
+        let objList = params['objList'];
 
-        let objIndex = 0;
+        if (!Array.isArray(objList)) {
+            objList = Object.values(objList)
+        }
+
         for (let i = 0; i < objList.length; i++) {
-
             if (objList[i][field] === params['reference']) {
                 target.push(params['objList'][i]);
             }
-            objIndex = i;
         }
 
         if (params['getDetails']) {
@@ -84,7 +85,7 @@ class Utils {
 
             return {
                 'target': target,
-                'index': objIndex,
+                'index': size - 1,
                 size,
                 keys,
                 values

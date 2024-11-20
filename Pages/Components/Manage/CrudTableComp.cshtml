@@ -1,13 +1,40 @@
+@using System.Security.Claims
+
+@{
+    var roles = User.Claims
+        .Where(c => c.Type == ClaimTypes.Role)
+        .Select(c => c.Value)
+        .ToList();
+
+    
+    bool isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
+
+    Console.WriteLine("Authenticated: " + User?.Identity?.IsAuthenticated);
+    Console.WriteLine("Roles: " + string.Join(", ", roles));
+}
+
 <div class="table-container">
     <div class="queries-container">
-        <div class="query-input-container">
-            <input type="text", placeholder="Query Information" id="search-r-input">
-            <button class="search-btn" id="search-btn">Search</button>
-        </div>
-        <div class="query-button-container">
-            <button class="list-btn" id="list-btn">List</button>
-            <button class="create-btn" id="create-btn">Create</button>
-        </div>
+        @if((User!).IsInRole("DBA") || (User!).IsInRole("Administrador"))
+        {
+            <div class="query-input-container">
+                <input type="text", placeholder="Query Information" id="search-r-input">
+                <button class="search-btn" id="search-btn">Search</button>
+            </div>
+            <div class="query-button-container">
+                <button class="list-btn" id="list-btn">List</button>
+                <button class="create-btn" id="create-btn">Create</button>
+            </div>
+        } else 
+        {
+            <div class="query-input-container">
+                <input type="text", placeholder="Query Information" id="search-r-input">
+                <button class="search-btn" id="search-btn">Search</button>
+            </div>
+            <div class="query-button-container">
+                <button class="list-btn" id="list-btn">List</button>
+            </div>
+        }
     </div>
     <table class="register-table" id="registers-table" table-name="proyecto">
         <thead>
@@ -33,21 +60,38 @@
 </div>
 
 <div class="table-pages">
-    @* FK *@
-    <button class="table-c" id="ac_proyecto" table-name="ac_proyecto">AC-proyecto</button>
-    <button class="table-c" id="docente_producto" table-name="docente_producto">Docente-producto</button>
-    <button class="table-c" id="desarrolla" table-name="desarrolla">Desarrolla</button>
-    <button class="table-c" id="aliado_proyecto" table-name="aliado_proyecto">Aliado-proyecto</button>
-    <button class="table-c" id="aa_proyecto" table-name="aa_proyecto">AA-proyecto</button>
-    <button class="table-c" id="proyecto_linea" table-name="proyecto_linea">Proyecto-linea</button>
-    <button class="table-c" id="ods_proyecto" table-name="ods_proyecto">Ods-proyecto</button>
-    <button class="table-c" id="palabras_clave" table-name="palabras_clave">Palabras clave</button>
-    <button class="table-c" id="producto" table-name="producto">Producto</button>
+    @if((User!).IsInRole("DBA") || (User!).IsInRole("Administrador"))
+    {
+        @* FK *@
+        <button class="table-c" id="ac_proyecto" table-name="ac_proyecto">AC-proyecto</button>
+        <button class="table-c" id="docente_producto" table-name="docente_producto">Docente-producto</button>
+        <button class="table-c" id="desarrolla" table-name="desarrolla">Desarrolla</button>
+        <button class="table-c" id="aliado_proyecto" table-name="aliado_proyecto">Aliado-proyecto</button>
+        <button class="table-c" id="aa_proyecto" table-name="aa_proyecto">AA-proyecto</button>
+        <button class="table-c" id="proyecto_linea" table-name="proyecto_linea">Proyecto-linea</button>
+        <button class="table-c" id="ods_proyecto" table-name="ods_proyecto">Ods-proyecto</button>
+        <button class="table-c" id="palabras_clave" table-name="palabras_clave">Palabras clave</button>
+        <button class="table-c" id="producto" table-name="producto">Producto</button>
+        <button class="table-c" id="usuario" table-name="usuario">Usuario</button>
 
-    @* No FK *@
-    <button class="table-c" id="proyecto" table-name="proyecto">Proyecto</button>
-    <button class="table-c" id="tipo_proyecto" table-name="tipo_producto">Tipo Producto</button>
-    <button class="table-c" id="termino_clave" table-name="termino_clave">Termino Clave</button>
+        @* No FK *@
+        <button class="table-c" id="proyecto" table-name="proyecto">Proyecto</button>
+        <button class="table-c" id="tipo_proyecto" table-name="tipo_producto">Tipo Producto</button>
+        <button class="table-c" id="termino_clave" table-name="termino_clave">Termino Clave</button>
+    } else 
+    {
+        @* FK *@
+        <button class="table-c" id="ac_proyecto" table-name="ac_proyecto">AC-proyecto</button>
+        <button class="table-c" id="desarrolla" table-name="desarrolla">Desarrolla</button>
+        <button class="table-c" id="aa_proyecto" table-name="aa_proyecto">AA-proyecto</button>
+        <button class="table-c" id="proyecto_linea" table-name="proyecto_linea">Proyecto-linea</button>
+        <button class="table-c" id="palabras_clave" table-name="palabras_clave">Palabras clave</button>
+
+        @* No FK *@
+        <button class="table-c" id="proyecto" table-name="proyecto">Proyecto</button>
+        <button class="table-c" id="tipo_proyecto" table-name="tipo_producto">Tipo Producto</button>
+        <button class="table-c" id="termino_clave" table-name="termino_clave">Termino Clave</button>
+    }
 </div>
 
 @* fragment? *@

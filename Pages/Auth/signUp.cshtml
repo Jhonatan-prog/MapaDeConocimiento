@@ -1,9 +1,25 @@
-@page "/signup"
+@page "/sign-up"
 
 @{ 
     Layout = "_AuthLayout";
+    ViewData["Subtitle"] = "Create account";
 }
 
-<form>
-    
+<form method="post" id="form" name="sign-up" b-dsiw5clz32>
+    <input type="text" name="email" id="email" placeholder="Email" b-dsiw5clz32 >
+    <input type="password" name="password" id="password" placeholder="Password" b-dsiw5clz32 >
+    <input 
+        type="password" 
+        name="password-confirmation" 
+        id="password-confirmation" 
+        placeholder="Password Confirmation" 
+        b-dsiw5clz32 
+    >
+
+    <input type="submit" value="Sign up" class="signup-btn" b-dsiw5clz32 >
 </form>
+<div>If already have an account <a href="http://localhost:5172/login">login</a></div>
+
+@section Scripts {
+    <script type="module" src="~/js/Auth/main.js"></script>
+}

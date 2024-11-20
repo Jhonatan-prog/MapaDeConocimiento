@@ -5,13 +5,18 @@
     ViewData["Subtitle"] = "User Login";
 }
 
-<form method="post" id="form" b-dsiw5clz32>
-    <input type="text" name="username" id="username" placeholder="Username" b-dsiw5clz32 >
+<form method="post" id="form" name="login" b-dsiw5clz32>
+    <input type="text" name="email" id="eamil" placeholder="Email" b-dsiw5clz32 >
     <input type="password" name="password" id="password" placeholder="Password" b-dsiw5clz32 >
     <div class="checkbox-container" b-dsiw5clz32>
         <input type="checkbox" name="remember" id="remember" b-dsiw5clz32>
         <h6 b-dsiw5clz32>Remember</h6>
     </div>
 
-    <input type="button" value="Log in" class="login-btn" b-dsiw5clz32 >
+    <input type="submit" value="Log in" class="login-btn" b-dsiw5clz32 >
 </form>
+<div>Do not have an account? <a href="http://localhost:5172/sign-up">create</a></div>
+
+@section Scripts {
+    <script type="module" src="~/js/Auth/main.js"></script>
+}

@@ -9,7 +9,8 @@ class GenericFront {
      * Creates an instance of GenericFront.
      * @param {string} [baseUrl='http://localhost:5172'] - The base URL for API requests.
      */
-    constructor(baseUrl = 'http://localhost:5172') {
+    constructor(baseUrl = 'http://localhost:5172', elementQSelectorObj = {}) {
+        this.elementQSelectorObj = elementQSelectorObj; // obj with all the QSelectors of each element (reference to each element in DOM)
         this.APIConsumer = new FetchHandler(baseUrl);
         this.utils = new Utils();
     }
@@ -44,9 +45,8 @@ class GenericFront {
      * @param {Response} response - The response object from the fetch request.
      * @returns {boolean} True if the response is OK, otherwise false.
      */
-    handleError(response) { // change handleError to handleResponse
+    handleError(response, message = `An error occurred while updating the register in ${this.tableName}`) {
         if (!response.ok) {
-            const message = `An error occurred while updating the register in ${this.tableName}.`;
             this.popUp(message);
             return false;
         }
@@ -96,6 +96,10 @@ class GenericFront {
             ? document.querySelector(elementOrQSelector)
             : elementOrQSelector;
 
+        if (!$element) {
+            $element = document.createElement('div');
+        }
+
         if ($element instanceof HTMLElement) {
             $element.removeEventListener(type, CbEventListener, options);
             $element.addEventListener(type, CbEventListener, options);
@@ -105,4 +109,80 @@ class GenericFront {
     }
 }
 
-export { GenericFront};
+class TableApiEvents extends GenericFront {
+    constructor(backendAPIUrl, elementQSelectorObj) {
+        super(backendAPIUrl, elementQSelectorObj);
+    }
+
+    async listRegisters(tableName) {
+        const data = await this.APIConsumer.listDataAsync(tableName);
+        return data;
+    }
+
+    async getRegisterByKey(tableName, pkColum, pk) {
+        const data = await this.APIConsumer.getDataByKeyAsync(tableName, pkColum, pk);
+        return data;
+    }
+
+    async postRegister(tableName, dataToPost) {
+        const response = await this.APIConsumer.postDataAsync(tableName, dataToPost);
+        return response;
+    }
+
+    async updateRegister(tableName, pkColum, pk, dataToUpdate) {
+        const data = await this.APIConsumer.updateDataAsync(tableName, pkColum, pk, dataToUpdate);
+        return data;
+    }
+
+    async deleteRegister(tableName, pkColum, pk) {
+        const data = await this.APIConsumer.deleteDataAsync(tableName, pkColum, pk);
+        return data;
+    }
+
+    async verifyCredentials(tableName, credentials) {
+        const isValid = await this.APIConsumer.verifyCredentialsAsync(tableName, credentials);
+        return isValid;
+    }
+
+    async authenticate(credentials) {
+        const jsonToken = await this.APIConsumer.loginAsync(credentials);
+        return jsonToken["token"];
+    }
+
+    async parameterizedQuery(bodyObj) {
+        const data = await this.APIConsumer.parameterizedQueryAsync(bodyObj);
+        return data;
+    }
+
+    async getUserRole(id) {
+        const userRole = [];
+
+        const SQLScript = {
+            "consulta": `
+                IF EXISTS (SELECT 1 FROM rol_usuario WHERE fkemail = @Email)
+                SELECT r.nombre
+                FROM usuario u
+                JOIN rol_usuario ru ON u.email = ru.fkemail
+                JOIN rol r ON ru.fkidrol = r.id
+                WHERE u.email = @Email;
+            `,
+            "parametros": {
+                'Email': id,
+            }
+        }
+
+        const response = await this.parameterizedQuery(SQLScript);
+        if (!response.ok) {
+            return null
+        }
+
+        const role = await response.json()
+        for (let i = 0; i < role.length; i++) {
+            userRole.push(role[i]['nombre'])
+        }
+
+        return userRole
+    }
+}
+
+export { GenericFront, TableApiEvents};

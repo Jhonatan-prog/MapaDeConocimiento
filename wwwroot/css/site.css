@@ -65,3 +65,42 @@ footer.footer[b-tlq1hnsijf] {
   white-space: nowrap;
   line-height: 60px;
 }
+
+div.pop-up {
+  --standard-sky-color: #624bb3;
+  --cloud-primary-color: #fbfbfb;
+
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+
+  margin-top: .7em;
+  padding: .3em;
+  width: auto;
+  height: auto;
+  min-width: 200px;
+  max-width: 300px;
+  max-height: 200px;
+
+  background-color: #ebeaea;
+  box-shadow: 2px 2px 8px hsla(240, 1%, 31%, 0.6);
+  border-radius: 5px;
+
+  & button {
+      position: relative;
+      float: right;
+
+      color: var(--cloud-primary-color);
+
+      border: none;
+      border-radius: 5px;
+      background-color: var(--standard-sky-color);
+      transition: all 300ms ease-in;
+  }
+}
+
+div.pop-up hr {
+  margin: .5em 0;
+}
+

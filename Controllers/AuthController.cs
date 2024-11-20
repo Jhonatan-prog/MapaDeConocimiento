@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MapaDeConocimiento.Models;
 using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace MapaDeConocimiento.Controllers
 {
@@ -20,26 +21,95 @@ namespace MapaDeConocimiento.Controllers
         }
 
         [AllowAnonymous]
+        [HttpPost("authenticated")]
+        public IActionResult Authenticated([FromBody] LoginModel login)
+        {   
+            return Ok();
+        } 
+
+        [AllowAnonymous]
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginModel login)
+        public IActionResult LogIn([FromBody] LoginModel user)
         {
-            _controlConexion.AbrirBd();
-            string comandoSQL = "SELECT COUNT(*) FROM usuario WHERE email = @Email AND contrasena = @Contrasena";
-            var parametros = new[]
-            {
-                new SqlParameter("@Email", login.Email),
-                new SqlParameter("@Contrasena", login.Contrasena)
-            };
-            var result = _controlConexion.EjecutarConsultaSql(comandoSQL, parametros);
-            _controlConexion.CerrarBd();
+            string userEmail = user.Email;
+            List<string> roles = FetchUserRoles(userEmail) ?? [];
 
-            if (result.Rows[0][0].ToString() == "1")
+            var token = _tokenService.GenerateToken(userEmail, roles);
+            return Ok(new { Token = token });
+        }
+
+        [HttpGet("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Append("token", "", new CookieOptions
             {
-                var token = _tokenService.GenerateToken(login.Email);
-                return Ok(new { Token = token });
+                Expires = DateTimeOffset.UtcNow.AddDays(-1)
+            });
+
+            return Redirect("/index");
+        }
+
+        [HttpGet("get-roles")]
+        public IActionResult GetUserRoles(string userEmail) 
+        {
+            try
+            {
+                var roles = FetchUserRoles(userEmail);
+
+                if (roles == null || roles.Count == 0) {
+                    Console.WriteLine("No roles found.");
+                    return NotFound();
+                }
+
+                return Ok(roles);
             }
+            catch (Exception exc)
+            {
+                Console.WriteLine($"Exception occurred: {exc.Message}");
+                return StatusCode(500, $"Internal server error: {exc.Message}");
+            }
+        }
 
-            return Unauthorized();
+        private List<string>? FetchUserRoles(string userEmail)
+        {
+            try
+            {
+                _controlConexion.AbrirBd();
+
+                string SQLScript = 
+                @"
+                    IF EXISTS (SELECT 1 FROM rol_usuario WHERE fkemail = @Email)
+                    SELECT r.nombre
+                    FROM usuario u
+                    JOIN rol_usuario ru ON u.email = ru.fkemail
+                    JOIN rol r ON ru.fkidrol = r.id
+                    WHERE u.email = @Email;
+                ";
+                var parametros = new[] { new SqlParameter("@Email", userEmail) };
+
+                var query = _controlConexion.EjecutarConsultaSql(SQLScript, parametros);
+
+                _controlConexion.CerrarBd();
+
+                if (query.Rows.Count == 0) {
+                    Console.WriteLine("No roles found in the database.");
+                    return [];
+                }
+
+                List<string> roles = [];
+
+                foreach (DataRow row in query.Rows)
+                {
+                    roles.Add((string) row["nombre"]);
+                }
+
+                return roles;
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine($"Exception occurred during role retrieval: {exc.Message}");
+                return null;
+            }
         }
     }
 }

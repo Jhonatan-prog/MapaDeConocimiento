@@ -21,5 +21,10 @@
             <img src="~/images/auth-img.jpg" alt="auth-img" b-dsiw5clz32>
         </div>
     </main>
+
+    @if (IsSectionDefined("Scripts"))
+    {
+        @RenderSection("Scripts", required: false)
+    }
 </body>
 </html>

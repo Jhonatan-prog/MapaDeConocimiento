@@ -3,26 +3,32 @@ import { GenericTable } from "/js/utils/Generic/GenericTable.js";
 // Forms Elements set-up
 const newRegisterForm = document.querySelector("div.form-container.create");
 const updateRegisterForm = document.querySelector("div.form-container.update");
-newRegisterForm.addEventListener('click', (e) => {
-    if (e.target === newRegisterForm) {
-        newRegisterForm.classList.remove('js-display-create_box')
-    }
-
-    e.stopPropagation();
-});
+if(newRegisterForm) {
+    newRegisterForm.addEventListener('click', (e) => {
+        if (e.target === newRegisterForm) {
+            newRegisterForm.classList.remove('js-display-create_box')
+        }
+    
+        e.stopPropagation();
+    });
+}
 
 const createBtn = document.getElementById("create-btn");
-createBtn.addEventListener('click', () => {
-    newRegisterForm.classList.add('js-display-create_box')
-});
+if (createBtn) {
+    createBtn.addEventListener('click', () => {
+        newRegisterForm.classList.add('js-display-create_box')
+    });
+}
 
-updateRegisterForm.addEventListener('click', (e) => {
-    if (e.target === updateRegisterForm) {
-        updateRegisterForm.classList.remove('js-display-update_box')
-    }
-
-    e.stopPropagation();
-});
+if (updateRegisterForm) {
+    updateRegisterForm.addEventListener('click', (e) => {
+        if (e.target === updateRegisterForm) {
+            updateRegisterForm.classList.remove('js-display-update_box')
+        }
+    
+        e.stopPropagation();
+    });
+}
 
 // table qSelectorInitializer
 const $currentTable = document.querySelector('table#registers-table');
@@ -46,10 +52,11 @@ const qSelectorInitializer = {
     }
 }
 
-const tableManager = new GenericTable(qSelectorInitializer);
+const tableManager = new GenericTable('http://localhost:5172', qSelectorInitializer);
 tableManager.tableSetUp($currentTable); // first initialization
 tableManager.formSubmission(); // Set-up forms interactions
 tableManager.tableNavegation(); // Set-up table navegator
+tableManager.setGlobalListeners();
 
 function handleUpdateBttnClickEvent() {
     const updateRegisterForm = document.querySelector("div.form-container.update"); // update form

@@ -75,7 +75,7 @@ div.form-container div.generic-form-tag input {
 
 div.form-container div.generic-form-tag input:hover, 
 div.form-container div.generic-form-tag input:focus {
-    border-color:  var(--standard-sky-color);
+    border: 2px solid var(--standard-sky-color);
 }
 
 input#post-btn,
@@ -104,6 +104,42 @@ button.create-btn {
     border: none;
     border-radius: var(--standard-b-radius);
     transition: background-color 200ms ease-in-out;
+}
+
+div.role-manager-container {
+    display: flex;
+    flex-direction: column;
+
+    & div.role-container {
+        overflow-y: auto;
+        margin: .2em 0;
+        border: 2px solid var(--subtle-grey);
+
+        div {
+            padding: .2em .5em;
+            cursor: pointer;
+            transition: all 200ms ease-in-out;
+        }
+
+        div:hover {
+            color: var(--cloud-primary-color);
+            background-color: var(--subtle-grey);
+        }
+    }
+
+    & button {
+        align-self: self-start;
+        border: none;
+        border-radius: 5px;
+        color: var(--cloud-primary-color);
+        background-color: #a5a5a5;
+        transition: all 200ms ease-in-out;
+    }
+
+    & button:hover {
+        outline: 1px solid var(--standard-lower-sky-color);
+        background-color: #c2c2c2;
+    }
 }
 
 div.js-display-create_box,

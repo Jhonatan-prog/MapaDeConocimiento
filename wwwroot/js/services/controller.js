@@ -1,13 +1,28 @@
+import { Cookie } from "../utils/cookies.js";
+
 class FetchHandler {
     constructor(baseUrl = "", tableName = "") {
         this.baseUrl = baseUrl;
         this.projectName = "mdc"
         this.tableName = tableName;
         this.queryResult = {};
+        this.cookie = new Cookie();
     }
 
     async fetchData(URI, initializer = {}) {
+        const token = this.cookie.getCookie("token");
+
         try {
+            if (token) {
+                initializer = {
+                    ...initializer,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            }
+
             const response = await fetch(URI, initializer);
 
             if (!response.ok) {
@@ -130,11 +145,72 @@ class FetchHandler {
             });
 
             if (!response.ok) {
-                throw Error(`Unable of fetching data, bad response -> status: ${response.status}, message: ${response.message}`)
+                throw new Error(`
+                    Unable of fetching data, bad response -> 
+                    status: ${response.status}, 
+                    message: ${response.message}
+                `)
             }
 
             return true;
-        } catch {
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    }
+
+    async verifyCredentialsAsync(tName, bodyObj) {
+        try {
+            const endpoint = `${this.baseUrl}/api/${this.projectName}/${tName}/verificar-contrasena`;
+            const response = await this.fetchData(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(bodyObj),
+            });
+
+            if (!response.ok) {
+                throw new Error(`
+                    Unable of fetching data, bad response -> 
+                    status: ${response.status}, 
+                    message: ${response.message}
+                `)
+            }
+
+            return true;
+
+        } catch (error) {
+            console.error(error);
+            return false;
+        }
+    }
+
+    async loginAsync(bodyObj) {
+        try {
+            const endpoint = `${this.baseUrl}/api/auth/login`;
+            const response = await this.fetchData(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(bodyObj),
+            });
+
+            if (!response.ok) {
+                throw new Error(`
+                    Unable log user in, response -> 
+                    status: ${response.status}, 
+                    message: ${response.message}
+                `)
+            }
+
+            const json = await response.json()
+
+            return json;
+
+        } catch (error) {
+            console.error(error);
             return false;
         }
     }

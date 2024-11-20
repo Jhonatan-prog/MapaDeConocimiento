@@ -1,8 +1,8 @@
 namespace MapaDeConocimiento.Models
 {
-    public class LoginModel
+    public class UserRoleModel
     {
         public string Email { get; set; } = string.Empty;
-        public string Contrasena { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
     }
 }
