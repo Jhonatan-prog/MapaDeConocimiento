@@ -24,6 +24,14 @@ html {
 body {
   margin-bottom: 60px;
   min-height: 100vh;
+
+  display: grid;
+  grid-template-rows: auto 1fr 1fr;
+  grid-template-areas: 
+    "header"
+    "main"
+    "footer";
+  height: 100vh;
 }
 
 form {
@@ -59,12 +67,6 @@ img {
   transform: translate(-50%, -50%);
 }
 
-footer.footer[b-tlq1hnsijf] {
-  position: static;
-  width: 100%;
-  white-space: nowrap;
-  line-height: 60px;
-}
 
 div.pop-up {
   --standard-sky-color: #624bb3;

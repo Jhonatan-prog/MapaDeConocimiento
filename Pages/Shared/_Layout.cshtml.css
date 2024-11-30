@@ -8,14 +8,91 @@ for details on configuring this project to bundle and minify static web assets. 
 
 
 body {
+  --standard-sky-color: #624bb3;
+  --standard-sky-color-hover: #40258e;
+  --subtle-grey: #9b9b9b;
+
+  --cloud-primary-color: #fbfbfb;
+
   font-family: Inter, sans-serif;
   font-feature-settings: 'liga' 1, 'calt' 1;
   
   background-color: #EBEBEB;
 }
 
-header.MCHeader {
-  background-color: #43A4FF;
+header.header {
+  grid-area: header;
+
+  height: 70px;
+  padding: .2em 1em;
+
+  font-weight: 500;
+
+  color: #fbfbfb;
+  background-color: hsla(0, 0%, 83%, 0.412);
+}
+
+header.header nav {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  height: 100%;
+
+  & ul.navbar-nav {
+    flex-grow: 1;
+
+    & li {
+      margin: 0 1em;
+    }
+  }
+}
+
+header div.auth-container {
+  display: flex;
+  justify-content: flex-end;
+
+  width: 200px;
+
+  & button {
+    padding: 0;
+    
+    font-weight: 500;
+    
+    border: none;
+    background-color: #e4e2e2;
+    border-radius: 50px;
+
+    transition: all 300ms ease-in-out;
+  }
+
+  & button:last-child {
+    margin-left: .5em;
+  }
+
+  & button:hover {
+    background-color: #d6d6d6;
+  }
+}
+
+main {
+  overflow-y: auto;
+  grid-area: main;
+}
+
+nav.navbar div.nav-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+footer {
+  position: sticky;
+
+  bottom: 0;
+  padding: .2em 1em;
+
+  border: none;
+  background-color: hsla(0, 0%, 83%, 0.412);
 }
 
 a.navbar-brand {
@@ -61,10 +138,11 @@ button.accept-policy {
   line-height: inherit;
 }
 
-.footer {
-  position: absolute;
-  bottom: 0;
+footer.footer {
+  grid-area: footer;
+/*   position: absolute;
+  bottom: 0; */
   width: 100%;
-  white-space: nowrap;
+/*   white-space: nowrap; */
   line-height: 60px;
 }

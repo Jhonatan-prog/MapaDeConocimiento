@@ -5,19 +5,30 @@
     bool isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
 }
 
-@if (@isAuthenticated)
-{
-    <p>You are authenticated!</p>
+<div class="index-container">
+    <div class="data-container">
+        <div class="text-container">
+            <h3>Welcome to knowledge map</h3>
+            <p></p>
+        </div>
 
-    @foreach (var claim in User?.Claims!)
-    {
-        @if (claim.Type == ClaimTypes.Role)
+        @if (@isAuthenticated)
         {
-            <p>Role: @claim.Value</p>
+            <p>Status: Authenticated!</p>
+            <p>Email: @User?.Identity?.Name <br></p>
+
+            <p>Your current roles are:</p>
+            @foreach (var claim in User?.Claims!)
+            {
+                @if (claim.Type == ClaimTypes.Role)
+                {
+                    <p>@claim.Value</p>
+                }
+            }
         }
-    }
-}
-else
-{
-    <p>You are not authenticated. <a href="http://localhost:5172/login">Login</a></p>
-}
+        else
+        {
+            <p>You currently are not authenticated. <a href="http://localhost:5172/login">Login</a></p>
+        }
+    </div>
+</div>

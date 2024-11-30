@@ -8,55 +8,53 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Mapa de conocimiento</title>
+     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/MapaDeConocimiento.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/generic_form.css" />
+    <link rel="stylesheet" href="~/css/generic_form.css" asp-append-version="true" />
 </head>
 <body>
-    <header class="MCHeader">
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">Mapa De Conocimiento</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Manage">Manage</a>
-                        </li>
-                        @if (isAuthenticated)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="/api/auth/logout">logout</a>
-                            </li>
-                        } else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Auth/login">Login</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Auth/signup">Sign up</a>
-                            </li>
-                        }
-                    </ul>
+    <header class="header">
+        <nav class="navbar">
+            <a class="navbar-brand" asp-area="" asp-page="/Index">MConocimiento</a>
+            <div class="d-flex justify-content-between flex-grow-1">
+                <ul class="navbar-nav d-sm-flex flex-row flex-grow-1 text-light">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-page="/Manage">Manage</a>
+                    </li>
+                </ul>
+                <div class="auth-container">
+                    @if (isAuthenticated)
+                    {
+                        <button>
+                            <a class="nav-link text-dark" href="/api/auth/logout">logout</a>
+                        </button>
+                    } else
+                    {
+                        <button>
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Auth/login">Login</a>
+                        </button>
+                        <button>
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Auth/signup">Sign up</a>
+                        </button>
+                    }
                 </div>
             </div>
         </nav>
     </header>
-    <main role="main" class="table-container container">
+    <main role="main" class="table-container">
         @RenderBody()
     </main>
     <footer class="border-top footer text-muted">
-        <div class="container">
+        <div class="footer-container">
             &copy; 2024 - Mapa De Conocimiento - <a asp-area="" asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
